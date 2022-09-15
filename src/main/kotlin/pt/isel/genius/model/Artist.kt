@@ -1,16 +1,24 @@
 package pt.isel.genius.model
 
-import reactor.core.publisher.Mono
-import java.time.Duration
-import java.time.temporal.ChronoUnit.SECONDS
+import java.util.concurrent.CompletableFuture
 
-data class Artist(val allMusic: AllMusicArtist, val spotify: SpotifyArtist, val apple: AppleMusicArtist) {
-    val monoAllMusicArtist
-        get() = Mono.just(allMusic).delayElement(Duration.of(2, SECONDS))
+data class Artist(private val allMusic: AllMusicArtist, private val spotify: SpotifyArtist, private val apple: AppleMusicArtist) {
+    val cfAllMusicArtist
+        get() = CompletableFuture.completedFuture(allMusic).delay(2000)
 
-    val monoSpotify
-        get() = Mono.just(spotify).delayElement(Duration.of(2, SECONDS))
+    val cfSpotify
+        get() = CompletableFuture.completedFuture(spotify).delay(2000)
 
-    val monoApple
-        get() = Mono.just(apple).delayElement(Duration.of(2, SECONDS))
+    val cfApple
+        get() = CompletableFuture.completedFuture(apple).delay(2000)
+}
+
+
+private fun <T> CompletableFuture<T>.delay(ms: Long): CompletableFuture<T> {
+    return this.thenCompose { v ->
+        CompletableFuture.supplyAsync {
+            Thread.sleep(ms)
+            v
+        }
+    }
 }
