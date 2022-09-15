@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<div>
+			<h3 th:text="*{artist}"></h3>
+			<hr>
+
+			<h3>AllMusic info:</h3>
+			<ul th:each="item : ${allMusic}">
+				<li th:text="*{'Founded: ' + item.year}"></li>
+				<li th:text="*{'From: ' + item.from}"></li>
+				<li th:text="*{'Genre: ' + item.genre}"></li>
+			</ul>
+			<hr>
+			<b>Spotify popular tracks:</b>
+			<div th:each="item : ${spotify}">
+				<span th:each="track : ${item.popularSongs}" th:text="${track + ', '}">
+				</span>
+			</div>
+			<hr>
+			<b>Apple Music top songs:</b>
+			<div th:each="item : ${apple}">
+				<span th:each="track : ${item.topSongs}" th:text="${track + ', '}">
+				</span>
+			</div>
+        </div>
+        <hr>
+		<footer>
+			<small>
+				<span th:text="${#dates.createNow().getTime() - startTime} "></span>
+				ms (response handling time)
+        	</small>
+		</footer>
+	</body>
+</html>
