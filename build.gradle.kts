@@ -17,6 +17,10 @@ repositories {
 
 dependencies {
 	/**
+ 	 * DSLs for HTML
+	 */
+	implementation("com.github.xmlet:htmlflow:3.9")
+	/**
 	 * Spring infrastructure
 	 */
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
