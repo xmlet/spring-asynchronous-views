@@ -19,6 +19,7 @@ dependencies {
 	/**
  	 * DSLs for HTML
 	 */
+	implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0")
 	implementation("com.github.xmlet:htmlflow:3.9")
 	/**
 	 * Spring infrastructure
@@ -32,6 +33,7 @@ dependencies {
 	 */
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	/**
 	 * Test
