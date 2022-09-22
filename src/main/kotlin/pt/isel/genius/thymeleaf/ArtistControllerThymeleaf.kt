@@ -20,7 +20,7 @@ class ArtistControllerThymeleaf {
         }
         model.addAttribute("startTime", System.currentTimeMillis())
         model.addAttribute("artist", name)
-        model.addAttribute("allMusic", artist.cfAllMusicArtist.join())
+        model.addAttribute("allMusic", artist.cfAllMusicArtist) // Implicit Call to join()made by Spring
         model.addAttribute("spotify", artist.cfSpotify.join())
         model.addAttribute("apple", artist.cfApple.join())
         return "artist"
