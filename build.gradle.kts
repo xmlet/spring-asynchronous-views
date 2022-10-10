@@ -13,6 +13,7 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
 	mavenCentral()
+	mavenLocal()
 }
 
 dependencies {
@@ -20,7 +21,7 @@ dependencies {
  	 * DSLs for HTML
 	 */
 	implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0")
-	implementation("com.github.xmlet:htmlflow:3.9")
+	implementation("com.github.xmlet:htmlflow:3.10-SNAPSHOT")
 	/**
 	 * Spring infrastructure
 	 */

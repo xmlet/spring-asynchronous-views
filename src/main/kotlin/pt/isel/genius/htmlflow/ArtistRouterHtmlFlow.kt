@@ -1,5 +1,6 @@
 package pt.isel.genius.htmlflow
 
+import htmlflow.HtmlViewAsync
 import org.reactivestreams.Publisher
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
@@ -18,23 +19,50 @@ fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
         .route()
         .path("/htmlflow") { builder ->
             builder
-                .GET("/reactive/artist/{name}", ::reactiveHandlerArtist)
+                .GET("/reactive/artist/{name}", ::htmlflowReactiveHandlerArtist)
+                .GET("/asyncview/artist/{name}", ::htmlflowAsyncViewHandlerArtist)
         }
         .build()
 }
 
-private fun reactiveHandlerArtist(req: ServerRequest): Mono<ServerResponse> {
+private fun htmlflowReactiveHandlerArtist(req: ServerRequest): Mono<ServerResponse> {
     val name = req.pathVariable("name")
     val artist: Artist = requireNotNull(artists[name.lowercase()]) {
         "No resource for artist name $name"
     }
-    val view: Publisher<String> = htmlFlowArtistReactive(
+    val view: Publisher<String> = htmlFlowArtistDoc(
         currentTimeMillis(),
         name,
         artist.pubAllMusicArtist,
         artist.pubSpotify,
         artist.pubApple
     )
+    return ServerResponse
+        .ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(view, object : ParameterizedTypeReference<String>() {})
+}
+
+private fun htmlflowAsyncViewHandlerArtist(req: ServerRequest): Mono<ServerResponse> {
+    val name = req.pathVariable("name")
+    val artist: Artist = requireNotNull(artists[name.lowercase()]) {
+        "No resource for artist name $name"
+    }
+    val model = ArtistAsyncModel(
+        currentTimeMillis(),
+        name,
+        artist.pubAllMusicArtist,
+        artist.pubSpotify,
+        artist.pubApple
+    )
+    val view: Publisher<String> = PrintStreamSink().let { sink ->
+        sink.asFLux().also {
+            (htmlFlowArtistAsyncView
+                .setPrintStream(sink) as HtmlViewAsync<ArtistAsyncModel>)
+                .writeAsync(model)
+                .thenAccept { sink.close() }
+        }
+    }
     return ServerResponse
         .ok()
         .contentType(MediaType.TEXT_HTML)

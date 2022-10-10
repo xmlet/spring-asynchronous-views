@@ -6,7 +6,6 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.server.*
 import pt.isel.genius.artists
-import pt.isel.genius.htmlflow.htmlFlowArtistReactive
 import pt.isel.genius.model.Artist
 
 fun artistCoRouterKotlinX(): RouterFunction<ServerResponse> {
