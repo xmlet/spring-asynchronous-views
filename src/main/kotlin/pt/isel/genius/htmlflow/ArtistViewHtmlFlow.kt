@@ -29,7 +29,7 @@ fun htmlFlowArtistReactive(
                 .doOnNext { ul
                     .li().text("Founded: ${it.year}").`__`()
                     .li().text("From: ${it.from}").`__`()
-                    .li().text("Founded: ${it.genre}").`__`()
+                    .li().text("Genre: ${it.genre}").`__`()
                 }
                 .doOnComplete { ul
                     .`__`() // ul
