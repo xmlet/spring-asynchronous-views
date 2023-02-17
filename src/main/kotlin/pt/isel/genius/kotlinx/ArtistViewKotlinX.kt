@@ -1,5 +1,6 @@
 package pt.isel.genius.kotlinx
 
+import kotlinx.coroutines.future.await
 import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
 import org.reactivestreams.Publisher
@@ -7,23 +8,24 @@ import pt.isel.genius.model.AllMusicArtist
 import pt.isel.genius.model.AppleMusicArtist
 import pt.isel.genius.model.SpotifyArtist
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.util.concurrent.CompletableFuture
 
 /**
  * KotlinX.html view in suspend function trying to await on CompletableFutures.
  * Illegal due to crossinline lambdas used in builders that loose the coroutine context.
  */
-suspend fun kotlinXArtistCoroutine(cfAllMusicArtist: CompletableFuture<AllMusicArtist>): Publisher<String> {
+suspend fun kotlinXArtistCoroutine(cfAllMusicArtist: Mono<AllMusicArtist>): Publisher<String> {
     return AppendableSink().use { sink ->
         sink.asFlux().also {
-            // val artist = cfAllMusicArtist.await() // OK but delays start emitting HTML
+            // val artist = cfAllMusicArtist.toFuture().await() // OK but delays start emitting HTML
             sink
                 .appendHTML()
                 .html {
                     body {
                         div {
                             h3 { +"Artist information" }
-                            // val artist = cfAllMusicArtist.await() // ERROR Suspension functions can be called only within coroutine body
+                            // val artist = cfAllMusicArtist.toFuture().await() // ERROR Suspension functions can be called only within coroutine body
                             // p { +"${artist.genre} ..." }
                             // ...
                         }
@@ -94,6 +96,51 @@ fun kotlinXArtistReactive(
                         }
                     }
                 }
+        }
+    }
+}
+
+fun kotlinXArtistBlocking(
+    startTime: Long,
+    artisName: String,
+    cfAllMusic: CompletableFuture<AllMusicArtist>,
+    cfSpotify: CompletableFuture<SpotifyArtist>,
+    cfApple: CompletableFuture<AppleMusicArtist>,
+): Publisher<String> {
+    return AppendableSink().let { sink ->
+        sink.asFlux().also {
+            sink
+                .appendHTML()
+                .html {
+                    body {
+                        div {
+                            h3 { +"$artisName" }
+                            hr {  }
+                            h3 { +"AllMusic info:" }
+                            ul {
+                                val allMusic = cfAllMusic.join()
+                                li { +"Founded: ${allMusic.year}" }
+                                li { +"From: ${allMusic.from}" }
+                                li { +"Founded: ${allMusic.genre}" }
+                            }
+                            hr {  }
+                            b { +"Spotify popular tracks:" }
+                            span {
+                                +cfSpotify.join().popularSongs.joinToString(",")
+                            }
+                            hr {  }
+                            b { +"Apple Music top songs:" }
+                            span {
+                                +cfApple.join().topSongs.joinToString(",")
+                            }
+                            hr {  }
+                            footer {
+                                small { +"${System.currentTimeMillis() - startTime} ms (response handling time)" }
+                            }
+                        }
+                    }
+                }
+            sink.close()
         }
     }
 }

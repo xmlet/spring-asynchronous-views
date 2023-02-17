@@ -19,10 +19,10 @@ class ArtistControllerThymeleaf {
             "No resource for artist name $name"
         }
         model.addAttribute("startTime", System.currentTimeMillis())
-        model.addAttribute("artist", name)
+        model.addAttribute("artistName", artist.name)
         model.addAttribute("allMusic", artist.cfAllMusicArtist) // Implicit Call to join() made by Spring
-        model.addAttribute("spotify", artist.cfSpotify.join())
-        model.addAttribute("apple", artist.cfApple.join())
+        model.addAttribute("spotify", artist.cfSpotify)
+        model.addAttribute("apple", artist.cfApple)
         return "artist"
     }
 
@@ -32,14 +32,14 @@ class ArtistControllerThymeleaf {
             "No resource for artist name $name"
         }
         model.addAttribute("startTime", System.currentTimeMillis())
-        model.addAttribute("artist", name)
+        model.addAttribute("artistName", artist.name)
         /**
          * !!! Only one data-driver variable is allowed to be specified as a model attribute!!!!
          * Otherwise, it causes TemplateProcessingException.
          */
-        // model.addAttribute("allMusic", ReactiveDataDriverContextVariable(artist.pubAllMusicArtist, 1))
+        model.addAttribute("allMusic", ReactiveDataDriverContextVariable(artist.cfAllMusicArtist.flux(), 1))
         // model.addAttribute("spotify", ReactiveDataDriverContextVariable(artist.pubSpotify, 1))
-        model.addAttribute("apple", ReactiveDataDriverContextVariable(artist.pubApple, 1))
+        // model.addAttribute("apple", ReactiveDataDriverContextVariable(artist.pubApple, 1))
         return "artistReactive"
     }
 }

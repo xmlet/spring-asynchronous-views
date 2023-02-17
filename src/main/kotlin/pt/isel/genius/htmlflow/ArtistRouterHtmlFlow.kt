@@ -19,10 +19,29 @@ fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
         .route()
         .path("/htmlflow") { builder ->
             builder
+                .GET("/blocking/artist/{name}", ::htmlflowBlockingHandlerArtist)
                 .GET("/reactive/artist/{name}", ::htmlflowReactiveHandlerArtist)
                 .GET("/asyncview/artist/{name}", ::htmlflowAsyncViewHandlerArtist)
         }
         .build()
+}
+
+private fun htmlflowBlockingHandlerArtist(req: ServerRequest): Mono<ServerResponse> {
+    val name = req.pathVariable("name")
+    val artist: Artist = requireNotNull(artists[name.lowercase()]) {
+        "No resource for artist name $name"
+    }
+    val view: Publisher<String> = htmlFlowArtistDocBlocking(
+        currentTimeMillis(),
+        artist.name,
+        artist.cfAllMusicArtist.toFuture(),
+        artist.cfSpotify.toFuture(),
+        artist.cfApple.toFuture()
+    )
+    return ServerResponse
+        .ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(view, object : ParameterizedTypeReference<String>() {})
 }
 
 private fun htmlflowReactiveHandlerArtist(req: ServerRequest): Mono<ServerResponse> {
@@ -32,7 +51,7 @@ private fun htmlflowReactiveHandlerArtist(req: ServerRequest): Mono<ServerRespon
     }
     val view: Publisher<String> = htmlFlowArtistDoc(
         currentTimeMillis(),
-        name,
+        artist.name,
         artist.pubAllMusicArtist,
         artist.pubSpotify,
         artist.pubApple
@@ -50,7 +69,7 @@ private fun htmlflowAsyncViewHandlerArtist(req: ServerRequest): Mono<ServerRespo
     }
     val model = ArtistAsyncModel(
         currentTimeMillis(),
-        name,
+        artist.name,
         artist.pubAllMusicArtist,
         artist.pubSpotify,
         artist.pubApple

@@ -10,6 +10,7 @@ import pt.isel.genius.model.Artist
 
 fun artistCoRouterKotlinX(): RouterFunction<ServerResponse> {
     return coRouter {
+        GET("/kotlinx/blocking/artist/{name}", ::handlerArtistKotlinXBlocking)
         GET("/kotlinx/reactive/artist/{name}", ::handlerArtistKotlinXReactive)
         GET("/kotlinx/coroutine/artist/{name}", ::handlerArtistKotlinXCoroutine)
     }
@@ -40,6 +41,26 @@ private suspend fun handlerArtistKotlinXReactive(req: ServerRequest): ServerResp
         artist.pubAllMusicArtist,
         artist.pubSpotify,
         artist.pubApple
+    )
+
+    return ServerResponse
+        .ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(body, object : ParameterizedTypeReference<String>() {})
+        .awaitSingle()
+}
+
+private suspend fun handlerArtistKotlinXBlocking(req: ServerRequest): ServerResponse {
+    val name = req.pathVariable("name")
+    val artist: Artist = requireNotNull(artists[name.lowercase()]) {
+        "No resource for artist name $name"
+    }
+    val body: Publisher<String> = kotlinXArtistBlocking(
+        System.currentTimeMillis(),
+        name,
+        artist.cfAllMusicArtist.toFuture(),
+        artist.cfSpotify.toFuture(),
+        artist.cfApple.toFuture()
     )
 
     return ServerResponse

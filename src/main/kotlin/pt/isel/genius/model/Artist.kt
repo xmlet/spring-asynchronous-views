@@ -1,34 +1,30 @@
 package pt.isel.genius.model
 
 import reactor.core.publisher.Mono
-import java.util.concurrent.CompletableFuture
+import java.time.Duration
+import java.time.temporal.ChronoUnit.SECONDS
 
-data class Artist(private val allMusic: AllMusicArtist, private val spotify: SpotifyArtist, private val apple: AppleMusicArtist) {
+data class Artist(
+    val name: String,
+    private val allMusic: AllMusicArtist,
+    private val spotify: SpotifyArtist,
+    private val apple: AppleMusicArtist
+) {
     val cfAllMusicArtist
-        get() = CompletableFuture.completedFuture(allMusic).delay(2000)
+        get() = Mono.fromSupplier { allMusic }.delayElement(Duration.of(2, SECONDS))
 
     val cfSpotify
-        get() = CompletableFuture.completedFuture(spotify).delay(2000)
+        get() = Mono.fromSupplier { spotify }.delayElement(Duration.of(2, SECONDS))
 
     val cfApple
-        get() = CompletableFuture.completedFuture(apple).delay(2000)
+        get() = Mono.fromSupplier { apple }.delayElement(Duration.of(2, SECONDS))
 
     val pubAllMusicArtist
-        get() = Mono.fromFuture(cfAllMusicArtist).flux()
+        get() = cfAllMusicArtist.flux()
 
     val pubSpotify
-        get() = Mono.fromFuture(cfSpotify).flux()
+        get() = cfSpotify.flux()
 
     val pubApple
-        get() = Mono.fromFuture(cfApple).flux()
-}
-
-
-private fun <T> CompletableFuture<T>.delay(ms: Long): CompletableFuture<T> {
-    return this.thenCompose { v ->
-        CompletableFuture.supplyAsync {
-            Thread.sleep(ms)
-            v
-        }
-    }
+        get() = cfApple.flux()
 }

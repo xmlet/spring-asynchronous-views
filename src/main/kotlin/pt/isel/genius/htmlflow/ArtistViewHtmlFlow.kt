@@ -8,6 +8,7 @@ import pt.isel.genius.model.AppleMusicArtist
 import pt.isel.genius.model.SpotifyArtist
 import reactor.core.publisher.Flux
 import java.lang.System.currentTimeMillis
+import java.util.concurrent.CompletableFuture
 
 fun htmlFlowArtistDoc(
     startTime: Long,
@@ -138,3 +139,49 @@ class ArtistAsyncModel(
     val spotify: Flux<SpotifyArtist>,
     val apple: Flux<AppleMusicArtist>,
 )
+
+
+fun htmlFlowArtistDocBlocking(
+    startTime: Long,
+    artisName: String,
+    cfAllMusic: CompletableFuture<AllMusicArtist>,
+    cfSpotify: CompletableFuture<SpotifyArtist>,
+    cfApple: CompletableFuture<AppleMusicArtist>
+) : Publisher<String> {
+    return PrintStreamSink().let { sink ->
+        sink.asFLux().also {
+            HtmlFlow
+                .doc(sink)
+                .html()
+                .body()
+                .div()
+                .h3().text(artisName).`__`()
+                .hr().`__`()
+                .h3().text("AllMusic info:").`__`()
+                .ul().of {
+                    val allMusic = cfAllMusic.join()
+                    it.li().text("Founded: ${allMusic.year}").`__`()
+                    it.li().text("From: ${allMusic.from}").`__`()
+                    it.li().text("Genre: ${allMusic.genre}").`__`()
+                }
+                .`__`() // ul
+                .hr().`__`()
+                .b().text("Spotify popular tracks:").`__`()
+                .of { it.span().text(cfSpotify.join().popularSongs.joinToString(",")).`__`() }
+                .hr().`__`()
+                .b().text("Apple Music top songs:").`__`()
+                .of { it.span().text(cfApple.join().topSongs.joinToString(",")).`__`() }
+                .`__`() // div
+                .hr().`__`()
+                .footer()
+                    .small()
+                        .text("${currentTimeMillis() - startTime} ms (response handling time)")
+                    .`__`() // small
+                .`__`() // footer
+                .`__`() // body
+                .`__`() // html
+            sink.close()
+        }
+    }
+}
+
