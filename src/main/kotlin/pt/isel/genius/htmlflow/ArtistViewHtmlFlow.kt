@@ -1,7 +1,7 @@
 package pt.isel.genius.htmlflow
 
 import htmlflow.HtmlFlow
-import htmlflow.HtmlView
+import htmlflow.HtmlPage
 import org.reactivestreams.Publisher
 import pt.isel.genius.model.AllMusicArtist
 import pt.isel.genius.model.AppleMusicArtist
@@ -10,6 +10,11 @@ import reactor.core.publisher.Flux
 import java.lang.System.currentTimeMillis
 import java.util.concurrent.CompletableFuture
 
+/**
+ * This web template produces well-formed HTML, and it is non-blocking.
+ * Yet, the template suffers from the "pyramid of doom" due to nested chain
+ * of continuation in doOnComplete() event.
+ */
 fun htmlFlowArtistDoc(
     startTime: Long,
     artisName: String,
@@ -17,7 +22,7 @@ fun htmlFlowArtistDoc(
     spotify: Flux<SpotifyArtist>,
     apple: Flux<AppleMusicArtist>
 ) : Publisher<String> {
-    return PrintStreamSink().let { sink ->
+    return AppendableSink().let { sink ->
         sink.asFLux().also {
             HtmlFlow
                 .doc(sink)
@@ -76,59 +81,65 @@ fun htmlFlowArtistDoc(
     }
 }
 
-val htmlFlowArtistAsyncView = HtmlFlow.viewAsync(System.out, ::htmlFlowArtistAsyncViewTemplate)
+val htmlFlowArtistAsyncView = HtmlFlow.viewAsync(::htmlFlowArtistAsyncViewTemplate)
 
-fun htmlFlowArtistAsyncViewTemplate(view: HtmlView<ArtistAsyncModel>, model: ArtistAsyncModel)
+fun htmlFlowArtistAsyncViewTemplate(view: HtmlPage)
 {
     view
         .html()
             .body()
                 .div()
-                    .h3().text(model.artistName).`__`()
+                    .h3().dynamic<ArtistAsyncModel> {
+                        h3, m -> h3.text(m.artistName)
+                    }
+                    .`__`() // h3
                     .hr().`__`()
                     .h3().text("AllMusic info:").`__`()
                     .ul()
-                    .async(model.allMusic) { ul, allMusic -> Flux.from(allMusic)
+                    .await<ArtistAsyncModel> { ul, m, cb -> Flux
+                        .from(m.allMusic)
+                        .doOnComplete(cb::finish)
                         .subscribe { ul
                             .li().text("Founded: ${it.year}").`__`()
                             .li().text("From: ${it.from}").`__`()
                             .li().text("Genre: ${it.genre}").`__`()
                         }
                     }
-                    .then { ul -> ul
-                        .`__`() // ul
-                        .hr().`__`()
-                        .b().text("Spotify popular tracks:").`__`()
-                    }
-                    .async(model.spotify) { div, spotify -> Flux.from(spotify)
+                    .`__`() // ul
+                    .hr().`__`()
+                    .b().text("Spotify popular tracks:").`__`()
+                    .await<ArtistAsyncModel> { div, m, cb -> Flux
+                        .from(m.spotify)
+                        .doOnComplete(cb::finish)
                         .subscribe { song ->
                             song.popularSongs.forEach {
                                 div.span().text("$it, ").`__`()
                             }
                         }
                     }
-                    .then { div -> div
-                        .hr().`__`()
-                        .b().text("Apple Music top songs:").`__`()
-                    }
-                    .async(model.apple) { div, apple -> Flux.from(apple)
+                    .hr().`__`()
+                    .b().text("Apple Music top songs:").`__`()
+                    .await<ArtistAsyncModel> { div, m, cb -> Flux
+                        .from(m.apple)
+                        .doOnComplete(cb::finish)
                         .subscribe { song ->
                             song.topSongs.forEach {
                                  div.span().text("$it, ").`__`()
                             }
                         }
                     }
-                    .then { div -> div
-                                    .`__`() // div
-                                    .hr().`__`()
-                                    .footer()
-                                        .small()
-                                            .text("${currentTimeMillis() - model.startTime} ms (response handling time)")
-                                        .`__`() // small
-                                    .`__`() // footer
-                                    .`__`() // body
-                                    .`__`() // html
-                    }
+
+                    .`__`() // div
+                    .hr().`__`()
+                    .footer()
+                        .small()
+                            .dynamic<ArtistAsyncModel> { small, m ->
+                                small.text("${currentTimeMillis() - m.startTime} ms (response handling time)")
+                            }
+                        .`__`() // small
+                    .`__`() // footer
+                    .`__`() // body
+                    .`__`() // html
 }
 
 
@@ -140,7 +151,11 @@ class ArtistAsyncModel(
     val apple: Flux<AppleMusicArtist>,
 )
 
-
+/**
+ * This web template solves the "pyramid of doom" of former htmlFlowArtistDocBlocking,
+ * avoiding nested continuations in doOnComplete().
+ * On the other, it is blocking on every CF with join().
+ */
 fun htmlFlowArtistDocBlocking(
     startTime: Long,
     artisName: String,
@@ -148,7 +163,7 @@ fun htmlFlowArtistDocBlocking(
     cfSpotify: CompletableFuture<SpotifyArtist>,
     cfApple: CompletableFuture<AppleMusicArtist>
 ) : Publisher<String> {
-    return PrintStreamSink().let { sink ->
+    return AppendableSink().let { sink ->
         sink.asFLux().also {
             HtmlFlow
                 .doc(sink)

@@ -1,10 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	id("org.springframework.boot") version "2.7.3"
-	id("io.spring.dependency-management") version "1.0.13.RELEASE"
-	kotlin("jvm") version "1.6.21"
-	kotlin("plugin.spring") version "1.6.21"
+	id("org.springframework.boot") version "2.7.8"
+	id("io.spring.dependency-management") version "1.1.0"
+	kotlin("jvm") version "1.8.10"
+	kotlin("plugin.spring") version "1.8.10"
 }
 
 group = "pt.isel"
@@ -17,11 +17,12 @@ repositories {
 }
 
 dependencies {
+	implementation("org.slf4j:slf4j-simple:2.0.6")
 	/**
  	 * DSLs for HTML
 	 */
 	implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0")
-	implementation("com.github.xmlet:htmlflow:3.10-SNAPSHOT")
+	implementation("com.github.xmlet:htmlflow:4.0")
 	/**
 	 * Spring infrastructure
 	 */
@@ -34,7 +35,7 @@ dependencies {
 	 */
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 	/**
 	 * Test

@@ -1,6 +1,5 @@
 package pt.isel.genius.htmlflow
 
-import htmlflow.HtmlViewAsync
 import org.reactivestreams.Publisher
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
@@ -74,12 +73,11 @@ private fun htmlflowAsyncViewHandlerArtist(req: ServerRequest): Mono<ServerRespo
         artist.pubSpotify,
         artist.pubApple
     )
-    val view: Publisher<String> = PrintStreamSink().let { sink ->
-        sink.asFLux().also {
-            (htmlFlowArtistAsyncView
-                .setPrintStream(sink) as HtmlViewAsync<ArtistAsyncModel>)
-                .writeAsync(model)
-                .thenAccept { sink.close() }
+    val view: Publisher<String> = AppendableSink().let { out ->
+        out.asFLux().also {
+            htmlFlowArtistAsyncView
+                .writeAsync(out, model)
+                .thenAccept { out.close() }
         }
     }
     return ServerResponse
