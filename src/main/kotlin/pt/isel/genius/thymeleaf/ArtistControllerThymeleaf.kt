@@ -14,15 +14,15 @@ import pt.isel.genius.model.Artist
 class ArtistControllerThymeleaf {
 
     @GetMapping("/blocking/artist/{name}")
-    fun blockingHandlerArtist(@PathVariable("name") name: String, model: Model): String {
+    fun handlerArtist(@PathVariable("name") name: String, model: Model): String {
         val artist: Artist = requireNotNull(artists[name.lowercase()]) {
             "No resource for artist name $name"
         }
         model.addAttribute("startTime", System.currentTimeMillis())
         model.addAttribute("artistName", artist.name)
-        model.addAttribute("allMusic", artist.cfAllMusicArtist) // Implicit Call to join() made by Spring
-        model.addAttribute("spotify", artist.cfSpotify)
-        model.addAttribute("apple", artist.cfApple)
+        model.addAttribute("musicBrainz", artist.monoMusicBrainz) // Implicit Call to join() made by Spring
+        model.addAttribute("spotify", artist.monoSpotify)
+        // model.addAttribute("apple", artist.cfApple)
         return "artist"
     }
 
@@ -37,7 +37,7 @@ class ArtistControllerThymeleaf {
          * !!! Only one data-driver variable is allowed to be specified as a model attribute!!!!
          * Otherwise, it causes TemplateProcessingException.
          */
-        model.addAttribute("allMusic", ReactiveDataDriverContextVariable(artist.cfAllMusicArtist.flux(), 1))
+        model.addAttribute("musicBrainz", ReactiveDataDriverContextVariable(artist.monoMusicBrainz.flux(), 1))
         // model.addAttribute("spotify", ReactiveDataDriverContextVariable(artist.pubSpotify, 1))
         // model.addAttribute("apple", ReactiveDataDriverContextVariable(artist.pubApple, 1))
         return "artistReactive"

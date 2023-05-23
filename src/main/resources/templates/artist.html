@@ -1,34 +1,27 @@
 <!DOCTYPE html>
 <html>
-	<head>
-        <link href="/bootstrap-5.2.2.min.css" rel="stylesheet">
-    </head>
-    <body class="container">
+    <body>
 		<div>
 			<h3 th:text="${artistName}"></h3>
 			<hr>
-
-			<h3>AllMusic info:</h3>
+			<h3>MusicBrainz info:</h3>
 			<ul>
-				<li th:text="${'Founded: ' + allMusic.year}"></li>
-				<li th:text="${'From: ' + allMusic.from}"></li>
-				<li th:text="${'Genre: ' + allMusic.genre}"></li>
+				<li th:text="${'Founded: ' + musicBrainz.year}"></li>
+				<li th:text="${'From: ' + musicBrainz.from}"></li>
+				<li th:text="${'Genre: ' + musicBrainz.genres}"></li>
 			</ul>
-
 			<hr>
-
-			<b>Spotify popular tracks:</b>
-			<span th:each="track : ${spotify.popularSongs}" th:text="${track + ', '}">
+			<b>Spotify popular tracks: </b>
+			<span>
+				<th:block th:each="track : ${spotify.popularSongs}" th:text="${track + ', '}"></th:block>
 			</span>
-			<hr>
-			<b>Apple Music top songs:</b>
-			<span th:each="song : ${apple.topSongs}" th:text="${song + ', '}">
         </div>
         <hr>
 		<footer>
-			<small>
-				<span th:text="${#dates.createNow().getTime() - startTime} "></span>
-				ms (response handling time)
+			<small th:text="
+				${#dates.createNow().getTime() - startTime}
+				+ 'ms (response handling time)'
+			">
         	</small>
 		</footer>
 	</body>

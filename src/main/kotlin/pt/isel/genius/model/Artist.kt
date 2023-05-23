@@ -6,25 +6,25 @@ import java.time.temporal.ChronoUnit.SECONDS
 
 data class Artist(
     val name: String,
-    private val allMusic: AllMusicArtist,
+    private val musicBrainz: MusicBrainz,
     private val spotify: SpotifyArtist,
     private val apple: AppleMusicArtist
 ) {
-    val cfAllMusicArtist
-        get() = Mono.fromSupplier { allMusic }.delayElement(Duration.of(2, SECONDS))
+    val monoMusicBrainz
+        get() = Mono.fromSupplier { musicBrainz }.delayElement(Duration.of(2, SECONDS))
 
-    val cfSpotify
-        get() = Mono.fromSupplier { spotify }.delayElement(Duration.of(2, SECONDS))
+    val monoSpotify
+        get() = Mono.fromSupplier { spotify }.delayElement(Duration.of(3, SECONDS))
 
-    val cfApple
-        get() = Mono.fromSupplier { apple }.delayElement(Duration.of(2, SECONDS))
+    val monoApple
+        get() = Mono.fromSupplier { apple }.delayElement(Duration.of(4, SECONDS))
 
-    val pubAllMusicArtist
-        get() = cfAllMusicArtist.flux()
+    val pubMusicBrainz
+        get() = monoMusicBrainz.flux()
 
     val pubSpotify
-        get() = cfSpotify.flux()
+        get() = monoSpotify.flux()
 
     val pubApple
-        get() = cfApple.flux()
+        get() = monoApple.flux()
 }

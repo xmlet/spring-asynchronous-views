@@ -1,18 +1,22 @@
-package pt.isel.genius.htmlflow
+package pt.isel.genius
 
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
 import reactor.core.publisher.Sinks.EmitFailureHandler
 
 
-class AppendableSink : Appendable, AutoCloseable {
+class AppendableSink(block: AppendableSink.() -> Unit) : Appendable, AutoCloseable {
     private val sink = Sinks.many().replay().all<String>()
+
+    init {
+        this.block()
+    }
 
     override fun close() {
         sink.emitComplete(EmitFailureHandler.FAIL_FAST)
     }
 
-    fun asFLux(): Flux<String> {
+    fun asFlux(): Flux<String> {
         return sink.asFlux()
     }
     override fun append(csq: CharSequence): Appendable {

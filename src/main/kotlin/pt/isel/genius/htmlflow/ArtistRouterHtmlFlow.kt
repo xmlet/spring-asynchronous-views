@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.server.RouterFunction
 import org.springframework.web.reactive.function.server.RouterFunctions
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import pt.isel.genius.AppendableSink
 import pt.isel.genius.artists
 import pt.isel.genius.model.Artist
 import reactor.core.publisher.Mono
@@ -33,9 +34,9 @@ private fun htmlflowBlockingHandlerArtist(req: ServerRequest): Mono<ServerRespon
     val view: Publisher<String> = htmlFlowArtistDocBlocking(
         currentTimeMillis(),
         artist.name,
-        artist.cfAllMusicArtist.toFuture(),
-        artist.cfSpotify.toFuture(),
-        artist.cfApple.toFuture()
+        artist.monoMusicBrainz.toFuture(),
+        artist.monoSpotify.toFuture(),
+        artist.monoApple.toFuture()
     )
     return ServerResponse
         .ok()
@@ -51,9 +52,9 @@ private fun htmlflowReactiveHandlerArtist(req: ServerRequest): Mono<ServerRespon
     val view: Publisher<String> = htmlFlowArtistDoc(
         currentTimeMillis(),
         artist.name,
-        artist.pubAllMusicArtist,
-        artist.pubSpotify,
-        artist.pubApple
+        artist.monoMusicBrainz.toFuture(),
+        artist.monoSpotify.toFuture(),
+        artist.monoApple.toFuture()
     )
     return ServerResponse
         .ok()
@@ -69,19 +70,18 @@ private fun htmlflowAsyncViewHandlerArtist(req: ServerRequest): Mono<ServerRespo
     val model = ArtistAsyncModel(
         currentTimeMillis(),
         artist.name,
-        artist.pubAllMusicArtist,
-        artist.pubSpotify,
-        artist.pubApple
+        artist.monoMusicBrainz.toFuture(),
+        artist.monoSpotify.toFuture(),
+        artist.monoApple.toFuture()
     )
-    val view: Publisher<String> = AppendableSink().let { out ->
-        out.asFLux().also {
-            htmlFlowArtistAsyncView
-                .writeAsync(out, model)
-                .thenAccept { out.close() }
-        }
+    val html: Publisher<String> = AppendableSink {
+        htmlFlowArtistAsyncView
+            .writeAsync(this, model)
+            .thenAccept { this.close() }
     }
+        .asFlux()
     return ServerResponse
         .ok()
         .contentType(MediaType.TEXT_HTML)
-        .body(view, object : ParameterizedTypeReference<String>() {})
+        .body(html, object : ParameterizedTypeReference<String>() {})
 }

@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html>
-	<head>
-        <link href="/bootstrap-5.2.2.min.css" rel="stylesheet">
-    </head>
-    <body class="container">
+    <body>
 		<div>
 			<h3 th:text="*{artistName}"></h3>
 			<hr>
 
-			<h3>AllMusic info:</h3>
-			<ul th:each="item : ${allMusic}">
+			<h3>MusicBrainz info:</h3>
+			<ul th:each="item : ${musicBrainz}">
 				<li th:text="*{'Founded: ' + item.year}"></li>
 				<li th:text="*{'From: ' + item.from}"></li>
-				<li th:text="*{'Genre: ' + item.genre}"></li>
+				<li th:text="*{'Genre: ' + item.genres}"></li>
 			</ul>
 			<hr>
 			<b>Spotify popular tracks:</b>

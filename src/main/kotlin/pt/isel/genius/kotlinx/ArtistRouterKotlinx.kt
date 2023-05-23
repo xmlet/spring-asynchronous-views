@@ -21,7 +21,7 @@ private suspend fun handlerArtistKotlinXCoroutine(req: ServerRequest): ServerRes
     val artist: Artist = requireNotNull(artists[name.lowercase()]) {
         "No resource for artist name $name"
     }
-    val body = kotlinXArtistCoroutine(artist.cfAllMusicArtist)
+    val body = kotlinXArtistCoroutine(artist.monoMusicBrainz)
 
     return ServerResponse
         .ok()
@@ -38,10 +38,9 @@ private suspend fun handlerArtistKotlinXReactive(req: ServerRequest): ServerResp
     val body: Publisher<String> = kotlinXArtistReactive(
         System.currentTimeMillis(),
         name,
-        artist.pubAllMusicArtist,
-        artist.pubSpotify,
-        artist.pubApple
-    )
+        artist.monoMusicBrainz.toFuture(),
+        artist.monoSpotify.toFuture(),
+    ).asFlux()
 
     return ServerResponse
         .ok()
@@ -57,10 +56,10 @@ private suspend fun handlerArtistKotlinXBlocking(req: ServerRequest): ServerResp
     }
     val body: Publisher<String> = kotlinXArtistBlocking(
         System.currentTimeMillis(),
-        name,
-        artist.cfAllMusicArtist.toFuture(),
-        artist.cfSpotify.toFuture(),
-        artist.cfApple.toFuture()
+        name.split(" ").joinToString(" ") { it.capitalize() },
+        artist.monoMusicBrainz.toFuture(),
+        artist.monoSpotify.toFuture(),
+        artist.monoApple.toFuture()
     )
 
     return ServerResponse
