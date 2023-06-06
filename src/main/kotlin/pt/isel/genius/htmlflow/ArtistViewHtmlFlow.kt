@@ -78,11 +78,7 @@ fun htmlFlowArtistDoc(
         .asFlux()
 }
 
-val htmlFlowArtistAsyncView: HtmlViewAsync = HtmlFlow.viewAsync(::htmlFlowArtistAsyncViewTemplate)
-
-fun htmlFlowArtistAsyncViewTemplate(view: HtmlPage)
-{
-view
+val htmlFlowArtistAsyncView = HtmlFlow.viewAsync { page -> page
 .html()
 .body()
 .div()
