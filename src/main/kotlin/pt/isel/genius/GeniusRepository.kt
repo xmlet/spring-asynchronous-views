@@ -1,9 +1,8 @@
 package pt.isel.genius
 
-import pt.isel.genius.model.AppleMusicArtist
-import pt.isel.genius.model.Artist
-import pt.isel.genius.model.MusicBrainz
-import pt.isel.genius.model.SpotifyArtist
+import io.reactivex.rxjava3.core.Observable
+import pt.isel.genius.model.*
+import java.util.concurrent.TimeUnit
 
 val artists : Map<String, Artist> = mapOf(
     "onerepublic" to Artist(
@@ -25,3 +24,10 @@ val artists : Map<String, Artist> = mapOf(
         AppleMusicArtist("The Rolling Stones", listOf("Gimme Shelter", "Beast of Burden", "Sympathy For The Devil", "Paint it Black", "Start Me Up"), listOf())
     )
 )
+
+val tracks: Observable<Track> = Observable.fromArray(
+    Track("Space Oddity"),
+    Track("Forest"),
+    Track("Just like honey")
+).concatMap { Observable.just(it).delay(2000, TimeUnit.MILLISECONDS) }
+

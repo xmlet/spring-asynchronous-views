@@ -1,5 +1,10 @@
 package pt.isel.genius.htmlflow
 
+import htmlflow.HtmlFlow
+import io.reactivex.rxjava3.core.Observable
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.html.*
+import kotlinx.html.stream.appendHTML
 import org.reactivestreams.Publisher
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
@@ -7,9 +12,14 @@ import org.springframework.web.reactive.function.server.RouterFunction
 import org.springframework.web.reactive.function.server.RouterFunctions
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import org.xmlet.htmlapifaster.EnumBorderType
+import org.xmlet.htmlapifaster.Table
 import pt.isel.genius.AppendableSink
 import pt.isel.genius.artists
 import pt.isel.genius.model.Artist
+import pt.isel.genius.model.Track
+import pt.isel.genius.tracks
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.lang.System.currentTimeMillis
 
@@ -21,6 +31,7 @@ fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
             builder
                 .GET("/blocking/artist/{name}", ::htmlflowBlockingHandlerArtist)
                 .GET("/reactive/artist/{name}", ::htmlflowReactiveHandlerArtist)
+                .GET("/reactive/playlist", ::handlerPlaylist)
                 .GET("/asyncview/artist/{name}", ::htmlflowAsyncViewHandlerArtist)
         }
         .build()
@@ -80,6 +91,35 @@ private fun htmlflowAsyncViewHandlerArtist(req: ServerRequest): Mono<ServerRespo
             .thenAccept { this.close() }
     }
         .asFlux()
+    return ServerResponse
+        .ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(html, object : ParameterizedTypeReference<String>() {})
+}
+
+
+private fun handlerPlaylist(req: ServerRequest): Mono<ServerResponse>  {
+    val view = HtmlFlow.view { page ->
+            page
+                .html()
+                .head().title().text("Playlist").`__`().`__`()
+                .body()
+                .table().attrBorder(EnumBorderType._1)
+                .tr().th().text("Track name").`__`().`__`()
+                .dynamic<Observable<Track>>{ table, tracks ->
+                    tracks
+                        .doOnNext { track ->
+                            table.tr().td().text(track.name).`__`().`__`()
+                        }
+                        .subscribe()
+                }
+                .`__`() // table
+                .`__`() // body
+                .`__`() // html
+        }
+    val html: Publisher<String> = AppendableSink {
+        view.setOut(this).write(tracks.doOnComplete { close() })
+    }.asFlux()
     return ServerResponse
         .ok()
         .contentType(MediaType.TEXT_HTML)

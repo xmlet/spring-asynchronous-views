@@ -42,7 +42,7 @@ fun kotlinXArtistReactive(
     return AppendableSink {
         appendHTML()
             .html {
-                body {
+                body { // body
                     div {
                         h3 { +"$artisName" }
                         hr()

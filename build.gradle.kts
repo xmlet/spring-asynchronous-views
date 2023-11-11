@@ -23,6 +23,7 @@ dependencies {
 	 */
 	implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0")
 	implementation("com.github.xmlet:htmlflow:4.0")
+	implementation("io.reactivex.rxjava3:rxjava:3.1.8")
 	/**
 	 * Spring infrastructure
 	 */
