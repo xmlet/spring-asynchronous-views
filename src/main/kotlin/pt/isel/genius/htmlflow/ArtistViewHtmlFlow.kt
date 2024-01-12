@@ -1,8 +1,7 @@
 package pt.isel.genius.htmlflow
 
-import htmlflow.HtmlFlow
-import htmlflow.HtmlPage
-import htmlflow.HtmlViewAsync
+import htmlflow.*
+import kotlinx.coroutines.future.await
 import org.reactivestreams.Publisher
 import pt.isel.genius.AppendableSink
 import pt.isel.genius.model.AppleMusicArtist
@@ -29,45 +28,45 @@ fun htmlFlowArtistDoc(
                 .html()
                 .body()
                 .div()
-                .h3().text(artisName).`__`()
-                .hr().`__`()
-                .h3().text("MusicBrainz info:").`__`()
+                .h3().text(artisName).l
+                .hr().l
+                .h3().text("MusicBrainz info:").l
                 .ul().of { ul -> musicBrainz
                     .thenAccept { ul
-                        .li().text("Founded: ${it.year}").`__`()
-                        .li().text("From: ${it.from}").`__`()
-                        .li().text("Genre: ${it.genres}").`__`()
+                        .li().text("Founded: ${it.year}").l
+                        .li().text("From: ${it.from}").l
+                        .li().text("Genre: ${it.genres}").l
                     }
                     .thenAccept { ul
-                        .`__`() // ul
-                        .hr().`__`()
-                        .b().text("Spotify popular tracks:").`__`()
+                        .l // ul
+                        .hr().l
+                        .b().text("Spotify popular tracks:").l
                         .of { div -> spotify
                             .thenAccept { song ->
                                 song.popularSongs.forEach {
-                                    div.span().text("$it, ").`__`()
+                                    div.span().text("$it, ").l
                                 }
                             }
                             .thenAccept {
                                 div
-                                    .hr().`__`()
-                                    .b().text("Apple Music top songs:").`__`()
+                                    .hr().l
+                                    .b().text("Apple Music top songs:").l
                                 apple
                                     .thenAccept { song ->
                                         song.topSongs.forEach {
-                                             div.span().text("$it, ").`__`()
+                                             div.span().text("$it, ").l
                                         }
                                     }
                                     .thenAccept { div
-                                        .`__`() // div
-                                        .hr().`__`()
+                                        .l // div
+                                        .hr().l
                                         .footer()
                                             .small()
                                                 .text("${currentTimeMillis() - startTime} ms (response handling time)")
-                                            .`__`() // small
-                                        .`__`() // footer
-                                        .`__`() // body
-                                        .`__`() // html
+                                            .l // small
+                                        .l // footer
+                                        .l // body
+                                        .l // html
                                         this.close()
                                     }
                             }
@@ -78,29 +77,29 @@ fun htmlFlowArtistDoc(
         .asFlux()
 }
 
-val htmlFlowArtistAsyncView = HtmlFlow.viewAsync { page -> page
+val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> page
 .html()
 .body()
 .div()
 .h3().dynamic<ArtistAsyncModel> {
     h3, m -> h3.text(m.artistName)
 }
-.`__`() // h3
-.hr().`__`()
-.h3().text("MusicBrainz info:").`__`()
+.l // h3
+.hr().l
+.h3().text("MusicBrainz info:").l
 .ul()
     .await<ArtistAsyncModel> { ul, m, cb -> m
         .musicBrainz
         .thenAccept { ul
-            .li().text("Founded: ${it.year}").`__`()
-            .li().text("From: ${it.from}").`__`()
-            .li().text("Genre: ${it.genres}").`__`()
+            .li().text("Founded: ${it.year}").l
+            .li().text("From: ${it.from}").l
+            .li().text("Genre: ${it.genres}").l
             cb.finish()
         }
     }
-.`__`() // ul
-.hr().`__`()
-.b().text("Spotify popular tracks:").`__`()
+.l // ul
+.hr().l
+.b().text("Spotify popular tracks:").l
 .span()
     .await<ArtistAsyncModel> { span, m, cb -> m
         .spotify
@@ -109,18 +108,59 @@ val htmlFlowArtistAsyncView = HtmlFlow.viewAsync { page -> page
             cb.finish()
         }
     }
-.`__`() // span
-.`__`() // div
-.hr().`__`()
+.l // span
+.l // div
+.hr().l
 .footer()
     .small()
         .dynamic<ArtistAsyncModel> { small, m ->
             small.text("${currentTimeMillis() - m.startTime} ms (response handling time)")
         }
-    .`__`() // small
-.`__`() // footer
-.`__`() // body
-.`__`() // html
+    .l // small
+.l // footer
+.l // body
+.l // html
+}
+
+val htmlFlowArtistSuspendingView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> page
+    .html()
+    .body()
+    .div()
+    .h3().dynamic<ArtistAsyncModel> {
+            h3, m -> h3.text(m.artistName)
+    }
+    .l // h3
+    .hr().l
+    .h3().text("MusicBrainz info:").l
+    .ul()
+    .suspending { ul, m: ArtistAsyncModel ->
+        val mb = m.musicBrainz.await()
+        ul
+            .li().text("Founded: ${mb.year}").l
+            .li().text("From: ${mb.from}").l
+            .li().text("Genre: ${mb.genres}").l
+
+    }
+    .l // ul
+    .hr().l
+    .b().text("Spotify popular tracks:").l
+    .span()
+    .suspending { span, m: ArtistAsyncModel ->
+        val spotify = m.spotify.await()
+        span.text(spotify.popularSongs.joinToString(", "))
+    }
+    .l // span
+    .l // div
+    .hr().l
+    .footer()
+    .small()
+    .dynamic<ArtistAsyncModel> { small, m ->
+        small.text("${currentTimeMillis() - m.startTime} ms (response handling time)")
+    }
+    .l // small
+    .l // footer
+    .l // body
+    .l // html
 }
 
 
@@ -150,31 +190,31 @@ fun htmlFlowArtistDocBlocking(
                 .html()
                 .body()
                 .div()
-                .h3().text(artisName).`__`()
-                .hr().`__`()
-                .h3().text("MusicBrainz info:").`__`()
+                .h3().text(artisName).l
+                .hr().l
+                .h3().text("MusicBrainz info:").l
                 .ul().of {
                     val musicBrainz = cfMusicBrainz.join()
-                    it.li().text("Founded: ${musicBrainz.year}").`__`()
-                    it.li().text("From: ${musicBrainz.from}").`__`()
-                    it.li().text("Genre: ${musicBrainz.genres}").`__`()
+                    it.li().text("Founded: ${musicBrainz.year}").l
+                    it.li().text("From: ${musicBrainz.from}").l
+                    it.li().text("Genre: ${musicBrainz.genres}").l
                 }
-                .`__`() // ul
-                .hr().`__`()
-                .b().text("Spotify popular tracks:").`__`()
-                .of { it.span().text(cfSpotify.join().popularSongs.joinToString(",")).`__`() }
-                .hr().`__`()
-                .b().text("Apple Music top songs:").`__`()
-                .of { it.span().text(cfApple.join().topSongs.joinToString(",")).`__`() }
-                .`__`() // div
-                .hr().`__`()
+                .l // ul
+                .hr().l
+                .b().text("Spotify popular tracks:").l
+                .of { it.span().text(cfSpotify.join().popularSongs.joinToString(",")).l }
+                .hr().l
+                .b().text("Apple Music top songs:").l
+                .of { it.span().text(cfApple.join().topSongs.joinToString(",")).l }
+                .l // div
+                .hr().l
                 .footer()
                     .small()
                         .text("${currentTimeMillis() - startTime} ms (response handling time)")
-                    .`__`() // small
-                .`__`() // footer
-                .`__`() // body
-                .`__`() // html
+                    .l // small
+                .l // footer
+                .l // body
+                .l // html
             this.close()
         }
         .asFlux()

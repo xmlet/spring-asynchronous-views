@@ -6,58 +6,84 @@
         <h3>Artist Thymeleaf</h3>
         <p>
             <a href="/thymeleaf/blocking/artist/onerepublic">/thymeleaf/blocking/artist/{name}</a>
-            <p></p>
-            Blocking on each CompletableFuture cfMusicBrainz, cfSpotify and cfApple
+            <small>
+            - Blocking on each CompletableFuture cfMusicBrainz, cfSpotify and cfApple
+            </small>
         </p>
         <p>
             <a href="/thymeleaf/reactive/artist/onerepublic">/thymeleaf/reactive/artist/{name}</a>
-            <p></p>
-            Using ReactiveDataDriverContextVariable to handle the CompletableFuture.
-            <br>
-            Limited to a single CF subscription.
+            <small>
+            - Using ReactiveDataDriverContextVariable to handle the CompletableFuture.
+            <strong>Limited to a single CF subscription.</strong>
+            </small>
         </p>
         <p>
             <a href="/thymeleaf/reactive/playlist">/thymeleaf/reactive/playlist</a>
+            <small>
+                - Using a Publisher, i.e. a Flowable in RX Java.
+            </small>
         </p>
         <h3>Artist KotlinX.html</h3>
         <p>
             <a href="/kotlinx/blocking/artist/onerepublic">/kotlinx/blocking/artist/{name}</a>
-            <p></p>
-            Blocking on completableFuture with join().
+            <small>
+            <strong>Blocking</strong> on completableFuture with join().
+            </small>
         </p>
         <p>
             <a href="/kotlinx/coroutine/artist/onerepublic">/kotlinx/coroutine/artist/{name}</a>
-            <p></p>
-            Trying to control HTML emit flow with await() of CF in coroutine.
-            <br>
+            <small>
+            - Trying to control HTML emit flow with await() of CF in coroutine.
             Await not allowed inside crossinline lambda.
+            </small>
         </p>
         <p>
             <a href="/kotlinx/reactive/artist/onerepublic">/kotlinx/reactive/artist/{name}</a>
-            <p></p>
-            Manage HTML emit flow with subcribe() and doOnComplete() of each Publisher.
+            <small>
+            - Manage HTML emit flow with subcribe() and doOnComplete() of each Publisher.
+            </small>
         </p>
         <p>
             <a href="/kotlinx/reactive/playlist">/kotlinx/reactive/playlist</a>
+            <small>
+                - Iterating onEach of a Observable.
+            </small>
         </p>
         <h3>Artist HtmlFlow</h3>
         <p>
             <a href="/htmlflow/blocking/artist/onerepublic">/htmlflow/blocking/artist/{name}</a>
-            <p></p>
-            Blocking on completableFuture with join().
+            <small>
+                - Blocking on completableFuture with join().
+            </small>
         </p>
         <p>
             <a href="/htmlflow/reactive/artist/onerepublic">/htmlflow/reactive/artist/{name}</a>
-            <p></p>
-            Manage HTML emit flow with subcribe() and doOnComplete() of each Publisher.
+            <small>
+                - Manage HTML emit flow with subcribe() and doOnComplete() of each Publisher.
+            </small>
         </p>
         <p>
             <a href="/htmlflow/asyncview/artist/onerepublic">/htmlflow/asyncview/artist/{name}</a>
-            <p></p>
-            New HtmlViewAsync of HtmlFlow.
+            <small>
+            - New HtmlViewAsync of HtmlFlow.
+            </small>
+        </p>
+        <p>
+            <a href="/htmlflow/suspending/artist/onerepublic">/htmlflow/suspending/artist/{name}</a>
+            <small>
+            - Using await in suspend functions.
+            </small>
         </p>
         <p>
             <a href="/htmlflow/reactive/playlist">/htmlflow/reactive/playlist</a>
+            <small>
+                - Iterating onEach of a Observable.
+            </small>
+        </p><p>
+            <a href="/htmlflow/suspending/playlist">/htmlflow/suspending/playlist</a>
+            <small>
+                - Collecting onEach of Kotlin Flow in suspend function.
+            </small>
         </p>
     </body>
 </html>
