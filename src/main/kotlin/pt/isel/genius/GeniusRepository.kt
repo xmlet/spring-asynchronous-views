@@ -4,6 +4,10 @@ import io.reactivex.rxjava3.core.Observable
 import pt.isel.genius.model.*
 import java.util.concurrent.TimeUnit
 
+object GeniusRepository {
+    var timeout: Long = 2000
+}
+
 val artists : Map<String, Artist> = mapOf(
     "onerepublic" to Artist(
         "OneRepublic",
@@ -19,7 +23,7 @@ val artists : Map<String, Artist> = mapOf(
     ),
     "the rolling stones" to Artist(
         "The Rolling Stones",
-        MusicBrainz(artist = "The Rolling Stones", 1962, "London", listOf("rock", "blues rock", "british rhythm & blues", "classic rock", "psychedelic rock")),
+        MusicBrainz(artist = "The Rolling Stones", 1962, "London", listOf("rock", "blues rock", "classic rock", "psychedelic rock")),
         SpotifyArtist("The Rolling Stones", 20221093, listOf("Paint it Black", "Start Me Up", "Gimme Shelter", "Satisfaction", "Sympathy For The Devil"), listOf()),
         AppleMusicArtist("The Rolling Stones", listOf("Gimme Shelter", "Beast of Burden", "Sympathy For The Devil", "Paint it Black", "Start Me Up"), listOf())
     )
@@ -29,5 +33,5 @@ val tracks: Observable<Track> = Observable.fromArray(
     Track("Space Oddity"),
     Track("Forest"),
     Track("Just like honey")
-).concatMap { Observable.just(it).delay(2000, TimeUnit.MILLISECONDS) }
+).concatMap { Observable.just(it).delay(GeniusRepository.timeout, TimeUnit.MILLISECONDS) }
 

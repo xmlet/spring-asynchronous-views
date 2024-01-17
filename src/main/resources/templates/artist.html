@@ -12,8 +12,7 @@
 			</ul>
 			<hr>
 			<b>Spotify popular tracks: </b>
-			<span>
-				<th:block th:each="track : ${spotify.popularSongs}" th:text="${track + ', '}"></th:block>
+			<span th:text="${#strings.listJoin(spotify.popularSongs, ', ')}">
 			</span>
         </div>
         <hr>

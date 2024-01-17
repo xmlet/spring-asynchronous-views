@@ -11,6 +11,8 @@ import pt.isel.genius.AppendableSink
 import pt.isel.genius.artists
 import pt.isel.genius.model.Artist
 import pt.isel.genius.tracks
+import reactor.core.publisher.Mono
+import reactor.core.publisher.Mono.fromFuture
 
 fun artistCoRouterKotlinX(): RouterFunction<ServerResponse> {
     return coRouter {
@@ -26,7 +28,7 @@ private suspend fun handlerArtistKotlinXCoroutine(req: ServerRequest): ServerRes
     val artist: Artist = requireNotNull(artists[name.lowercase()]) {
         "No resource for artist name $name"
     }
-    val body = kotlinXArtistCoroutine(artist.monoMusicBrainz)
+    val body = kotlinXArtistCoroutine(fromFuture(artist.monoMusicBrainz()))
 
     return ServerResponse
         .ok()
@@ -43,8 +45,8 @@ private suspend fun handlerArtistKotlinXReactive(req: ServerRequest): ServerResp
     val body: Publisher<String> = kotlinXArtistReactive(
         System.currentTimeMillis(),
         name,
-        artist.monoMusicBrainz.toFuture(),
-        artist.monoSpotify.toFuture(),
+        artist.monoMusicBrainz(),
+        artist.monoSpotify(),
     ).asFlux()
 
     return ServerResponse
@@ -62,9 +64,9 @@ private suspend fun handlerArtistKotlinXBlocking(req: ServerRequest): ServerResp
     val body: Publisher<String> = kotlinXArtistBlocking(
         System.currentTimeMillis(),
         name.split(" ").joinToString(" ") { it.capitalize() },
-        artist.monoMusicBrainz.toFuture(),
-        artist.monoSpotify.toFuture(),
-        artist.monoApple.toFuture()
+        artist.monoMusicBrainz(),
+        artist.monoSpotify(),
+        artist.monoApple()
     )
 
     return ServerResponse
@@ -82,7 +84,7 @@ private suspend fun handlerPlaylist(req: ServerRequest): ServerResponse {
                 body {
                     table {
                         attributes["border"] = "1"
-                        tr { th { text("Track Name") } }
+                        tr { th { text("Track name") } }
                         tracks
                             .doOnNext { track ->
                                 tr { td { text(track.name) } }

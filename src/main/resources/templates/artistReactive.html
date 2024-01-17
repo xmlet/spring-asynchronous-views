@@ -26,10 +26,11 @@
         </div>
         <hr>
 		<footer>
-			<small>
-				<span th:text="${#dates.createNow().getTime() - startTime} "></span>
-				ms (response handling time)
-        	</small>
+			<small th:text="
+				${#dates.createNow().getTime() - startTime}
+				+ 'ms (response handling time)'
+			">
+			</small>
 		</footer>
 	</body>
 </html>
