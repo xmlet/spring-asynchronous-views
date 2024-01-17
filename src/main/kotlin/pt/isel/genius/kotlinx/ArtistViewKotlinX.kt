@@ -92,7 +92,7 @@ fun kotlinXArtistBlocking(
                                 val musicBrainz = cfMusicBrainz.join()
                                 li { +"Founded: ${musicBrainz.year}" }
                                 li { +"From: ${musicBrainz.from}" }
-                                li { +"Founded: ${musicBrainz.genres}" }
+                                li { +"Genre: ${musicBrainz.genres}" }
                             }
                             hr {  }
                             b { +"Spotify popular tracks:" }
@@ -106,10 +106,10 @@ fun kotlinXArtistBlocking(
                                 +cfApple.join().topSongs.joinToString(",")
                             }
                             */
-                            hr {  }
-                            footer {
-                                small { +"${System.currentTimeMillis() - startTime} ms (response handling time)" }
-                            }
+                        }
+                        hr {  }
+                        footer {
+                            small { +"${System.currentTimeMillis() - startTime} ms (response handling time)" }
                         }
                     }
                 }
