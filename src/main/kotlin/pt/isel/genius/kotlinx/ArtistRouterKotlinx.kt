@@ -84,7 +84,7 @@ private suspend fun handlerPlaylist(req: ServerRequest): ServerResponse {
                 body {
                     table {
                         attributes["border"] = "1"
-                        tr { th { text("Track Name") } }
+                        tr { th { text("Track name") } }
                         tracks
                             .doOnNext { track ->
                                 tr { td { text(track.name) } }
