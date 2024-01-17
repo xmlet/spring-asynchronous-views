@@ -80,6 +80,14 @@ class TestArtistView {
         assertHtml(expectedPlaylistIllFormed, html)
     }
     /*========================================================================*/
+    /*---------------------            Groovy            ---------------------*/
+    /*========================================================================*/
+    @Test
+    fun testGroovyPlaylistReactiveIllFormed() {
+        val html = request("/groovy/reactive/playlist")
+        assertHtml(expectedPlaylistIllFormed, html)
+    }
+    /*========================================================================*/
     /*---------------------           HtmlFlow           ---------------------*/
     /*========================================================================*/
     @Test
@@ -128,6 +136,7 @@ class TestArtistView {
         val actual= html
             .replace("<".toRegex(), "${lineSeparator()}$0")
             .replace(">".toRegex(), "$0${lineSeparator()}")
+            .replace("'", "\"")
             .split(lineSeparator())
             .filter { !it.contains("(response handling time)") } // Skip footer with time in milliseconds
             .map(String::trim)

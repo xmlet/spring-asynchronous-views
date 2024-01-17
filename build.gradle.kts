@@ -5,6 +5,7 @@ plugins {
 	id("io.spring.dependency-management") version "1.1.0"
 	kotlin("jvm") version "1.8.10"
 	kotlin("plugin.spring") version "1.8.10"
+	groovy
 }
 
 group = "pt.isel"
@@ -38,6 +39,10 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+	/**
+	 * Groovy
+	 */
+	implementation("org.apache.groovy:groovy-all:4.0.14")
 	/**
 	 * Test
 	 */
