@@ -43,32 +43,19 @@ fun htmlFlowArtistDoc(
                         .b().text("Spotify popular tracks:").l
                         .of { div -> spotify
                             .thenAccept { song ->
-                                song.popularSongs.forEach {
-                                    div.span().text("$it, ").l
-                                }
+                                div.span().text(song.popularSongs.joinToString(", ")).l
                             }
-                            .thenAccept {
-                                div
-                                    .hr().l
-                                    .b().text("Apple Music top songs:").l
-                                apple
-                                    .thenAccept { song ->
-                                        song.topSongs.forEach {
-                                             div.span().text("$it, ").l
-                                        }
-                                    }
-                                    .thenAccept { div
-                                        .l // div
-                                        .hr().l
-                                        .footer()
-                                            .small()
-                                                .text("${currentTimeMillis() - startTime} ms (response handling time)")
-                                            .l // small
-                                        .l // footer
-                                        .l // body
-                                        .l // html
-                                        this.close()
-                                    }
+                            .thenAccept { div
+                                .l // div
+                                .hr().l
+                                .footer()
+                                    .small()
+                                        .text("${currentTimeMillis() - startTime} ms (response handling time)")
+                                    .l // small
+                                .l // footer
+                                .l // body
+                                .l // html
+                                this.close()
                             }
                         }
                     }
@@ -202,10 +189,10 @@ fun htmlFlowArtistDocBlocking(
                 .l // ul
                 .hr().l
                 .b().text("Spotify popular tracks:").l
-                .of { it.span().text(cfSpotify.join().popularSongs.joinToString(",")).l }
-                .hr().l
-                .b().text("Apple Music top songs:").l
-                .of { it.span().text(cfApple.join().topSongs.joinToString(",")).l }
+                .of { it.span().text(cfSpotify.join().popularSongs.joinToString(", ")).l }
+//                .hr().l
+//                .b().text("Apple Music top songs:").l
+//                .of { it.span().text(cfApple.join().topSongs.joinToString(", ")).l }
                 .l // div
                 .hr().l
                 .footer()
