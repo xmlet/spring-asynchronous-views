@@ -13,6 +13,7 @@ import pt.isel.genius.model.Artist
 import pt.isel.genius.model.Track
 import pt.isel.genius.tracks
 import reactor.core.publisher.Mono
+import reactor.core.publisher.Mono.fromFuture
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -37,8 +38,8 @@ private fun thymeleafBlockingHandlerArtist(req: ServerRequest): Mono<ServerRespo
     val model = mapOf<String, Any>(
         "startTime" to System.currentTimeMillis(),
         "artistName" to artist.name,
-        "musicBrainz" to artist.monoMusicBrainz, // Implicit Call to join() made by Spring
-        "spotify" to artist.monoSpotify
+        "musicBrainz" to artist.monoMusicBrainz(), // Implicit Call to join() made by Spring
+        "spotify" to artist.monoSpotify()
     )
     return ServerResponse
         .ok()
@@ -58,8 +59,8 @@ private fun thymeleafReactiveHandlerArtist(req: ServerRequest): Mono<ServerRespo
          * !!! Only one data-driver variable is allowed to be specified as a model attribute!!!!
          * Otherwise, it causes TemplateProcessingException.
          */
-        "musicBrainz" to ReactiveDataDriverContextVariable(artist.monoMusicBrainz.flux(), 1),
-        "spotify" to ReactiveDataDriverContextVariable(artist.monoSpotify, 1)
+        "musicBrainz" to ReactiveDataDriverContextVariable(fromFuture(artist.monoMusicBrainz()).flux(), 1),
+        // "spotify" to ReactiveDataDriverContextVariable(artist.monoSpotify(), 1)
     )
     return ServerResponse
         .ok()

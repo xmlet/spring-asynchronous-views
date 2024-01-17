@@ -61,9 +61,9 @@ private fun htmlflowBlockingHandlerArtist(req: ServerRequest): Mono<ServerRespon
     val view: Publisher<String> = htmlFlowArtistDocBlocking(
         currentTimeMillis(),
         artist.name,
-        artist.monoMusicBrainz.toFuture(),
-        artist.monoSpotify.toFuture(),
-        artist.monoApple.toFuture()
+        artist.monoMusicBrainz(),
+        artist.monoSpotify(),
+        artist.monoApple()
     )
     return ServerResponse
         .ok()
@@ -79,9 +79,9 @@ private fun htmlflowReactiveHandlerArtist(req: ServerRequest): Mono<ServerRespon
     val view: Publisher<String> = htmlFlowArtistDoc(
         currentTimeMillis(),
         artist.name,
-        artist.monoMusicBrainz.toFuture(),
-        artist.monoSpotify.toFuture(),
-        artist.monoApple.toFuture()
+        artist.monoMusicBrainz(),
+        artist.monoSpotify(),
+        artist.monoApple()
     )
     return ServerResponse
         .ok()
@@ -97,9 +97,9 @@ private fun htmlflowAsyncViewHandlerArtist(view: (AppendableSink, ArtistAsyncMod
     val model = ArtistAsyncModel(
         currentTimeMillis(),
         artist.name,
-        artist.monoMusicBrainz.toFuture(),
-        artist.monoSpotify.toFuture(),
-        artist.monoApple.toFuture()
+        artist.monoMusicBrainz(),
+        artist.monoSpotify(),
+        artist.monoApple()
     )
     val html: Publisher<String> = AppendableSink { view(this, model) }
         .asFlux()

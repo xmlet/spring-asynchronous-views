@@ -10,21 +10,24 @@ data class Artist(
     private val spotify: SpotifyArtist,
     private val apple: AppleMusicArtist
 ) {
-    val monoMusicBrainz
-        get() = Mono.fromSupplier { musicBrainz }.delayElement(Duration.of(2, SECONDS))
+    companion object {
+        var timeout: Long = 2
+    }
 
-    val monoSpotify
-        get() = Mono.fromSupplier { spotify }.delayElement(Duration.of(3, SECONDS))
+    fun monoMusicBrainz() = Mono
+        .fromSupplier { musicBrainz }
+        .delayElement(Duration.of(timeout, SECONDS))
+        .toFuture()
 
-    val monoApple
-        get() = Mono.fromSupplier { apple }.delayElement(Duration.of(4, SECONDS))
 
-    val pubMusicBrainz
-        get() = monoMusicBrainz.flux()
+    fun monoSpotify() = Mono
+        .fromSupplier { spotify }
+        .delayElement(Duration.of(timeout + 1, SECONDS))
+        .toFuture()
 
-    val pubSpotify
-        get() = monoSpotify.flux()
+    fun monoApple() = Mono
+        .fromSupplier { apple }
+        .delayElement(Duration.of(timeout + 2, SECONDS))
+        .toFuture()
 
-    val pubApple
-        get() = monoApple.flux()
 }
