@@ -10,11 +10,22 @@ plugins {
 
 group = "pt.isel"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_11
+java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
 	mavenCentral()
 	mavenLocal()
+}
+
+sourceSets {
+	main {
+		java {
+			setSrcDirs(emptyList<String>())    // no source dirs for the java compiler
+		}
+		groovy {
+			setSrcDirs(listOf("src/main/java", "src/main/groovy"))  // compile   everything in src/ with groovy
+		}
+	}
 }
 
 dependencies {
@@ -57,6 +68,15 @@ tasks.withType<KotlinCompile> {
 	}
 }
 
+tasks
+	.getByName<AbstractCompile>("compileGroovy")
+	.dependsOn(tasks.getByName<KotlinCompile>("compileKotlin"))
+
+tasks
+	.getByName<AbstractCompile>("compileGroovy")
+	.classpath += files(tasks.getByName<KotlinCompile>("compileKotlin").destinationDirectory)
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
