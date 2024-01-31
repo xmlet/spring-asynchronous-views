@@ -17,7 +17,7 @@ fun artistCoRouterKotlinX(): RouterFunction<ServerResponse> {
     return coRouter {
         GET("/kotlinx/blocking/artist/{name}", ::handlerArtistKotlinXBlocking)
         GET("/kotlinx/reactive/artist/{name}", ::handlerArtistKotlinXReactive)
-        GET("/kotlinx/reactive/playlist", ::handlerPlaylist)
+        GET("/kotlinx/reactive/playlist", ::handlerJatl)
         GET("/kotlinx/coroutine/artist/{name}", ::handlerArtistKotlinXCoroutine)
     }
 }
@@ -75,7 +75,7 @@ private suspend fun handlerArtistKotlinXBlocking(req: ServerRequest): ServerResp
         .awaitSingle()
 }
 
-private suspend fun handlerPlaylist(req: ServerRequest): ServerResponse {
+private suspend fun handlerJatl(req: ServerRequest): ServerResponse {
     val view: AppendableSink = AppendableSink {
         appendHTML()
             .html {

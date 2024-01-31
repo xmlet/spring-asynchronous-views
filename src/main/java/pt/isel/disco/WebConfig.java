@@ -24,6 +24,11 @@ public class WebConfig {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> routerDemoKotlinX() {
+        return DslDemoRouter.dslDemoRouter();
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> routerArtistThymeleaf() {
         return ArtistRouterThymeleafKt.artistRouterThymeleaf();
     }
