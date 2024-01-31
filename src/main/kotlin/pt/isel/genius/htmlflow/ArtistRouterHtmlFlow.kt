@@ -6,11 +6,7 @@ import htmlflow.suspending
 import io.reactivex.rxjava3.core.BackpressureStrategy
 import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.html.*
-import kotlinx.html.stream.appendHTML
 import org.reactivestreams.Publisher
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.MediaType
@@ -19,8 +15,8 @@ import org.springframework.web.reactive.function.server.RouterFunctions
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.xmlet.htmlapifaster.EnumBorderType
-import org.xmlet.htmlapifaster.Table
 import pt.isel.genius.AppendableSink
+import pt.isel.genius.GeniusRepository
 import pt.isel.genius.artists
 import pt.isel.genius.model.Artist
 import pt.isel.genius.model.Track
@@ -28,6 +24,7 @@ import pt.isel.genius.tracks
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.lang.System.currentTimeMillis
+import java.util.concurrent.TimeUnit
 
 
 fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
@@ -35,6 +32,8 @@ fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
         .route()
         .path("/htmlflow") { builder ->
             builder
+                .GET("/blocking/weather/portugal", ::htmlflowBlockingHandlerWeather)
+                .GET("/reactive/weather/portugal", ::htmlflowReactiveHandlerWeather)
                 .GET("/blocking/artist/{name}", ::htmlflowBlockingHandlerArtist)
                 .GET("/reactive/artist/{name}", ::htmlflowReactiveHandlerArtist)
                 .GET("/reactive/playlist", ::handlerPlaylist)
@@ -51,6 +50,38 @@ fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
                 })
         }
         .build()
+}
+
+private fun htmlflowBlockingHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
+    val portugal = Weather("Portugal", listOf(
+        Location("Porto", "Light rain", 14),
+        Location("Lisbon", "Sunny day", 14),
+        Location("Sagres", "Sunny day", 18)))
+    val html = AppendableSink {
+        wxView.setOut(this).write(portugal)
+        this.close()
+    }.asFlux()
+
+    return ServerResponse
+        .ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(html, object : ParameterizedTypeReference<String>() {})
+}
+private fun htmlflowReactiveHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
+    val portugal = WeatherRx("Portugal", Observable
+        .fromArray(
+            Location("Porto", "Light rain", 14),
+            Location("Lisbon", "Sunny day", 14),
+            Location("Sagres", "Sunny day", 18)
+        ).concatMap { Observable.just(it).delay(1000, TimeUnit.MILLISECONDS) }
+    )
+    val html = AppendableSink {
+        wxRxView.setOut(this).write(portugal)
+    }.asFlux()
+    return ServerResponse
+        .ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(html, object : ParameterizedTypeReference<String>() {})
 }
 
 private fun htmlflowBlockingHandlerArtist(req: ServerRequest): Mono<ServerResponse> {
@@ -120,10 +151,9 @@ private fun handlerPlaylist(req: ServerRequest): Mono<ServerResponse>  {
                 .tr().th().text("Track name").`__`().`__`()
                 .dynamic<Observable<Track>>{ table, tracks ->
                     tracks
-                        .doOnNext { track ->
+                        .subscribe { track ->
                             table.tr().td().text(track.name).`__`().`__`()
                         }
-                        .subscribe()
                 }
                 .`__`() // table
                 .`__`() // body

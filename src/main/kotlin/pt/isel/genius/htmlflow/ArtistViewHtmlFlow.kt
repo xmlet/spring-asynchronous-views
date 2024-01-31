@@ -1,8 +1,10 @@
 package pt.isel.genius.htmlflow
 
 import htmlflow.*
+import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.future.await
 import org.reactivestreams.Publisher
+import org.xmlet.htmlapifaster.EnumBorderType._1
 import pt.isel.genius.AppendableSink
 import pt.isel.genius.model.AppleMusicArtist
 import pt.isel.genius.model.MusicBrainz
@@ -207,4 +209,62 @@ fun htmlFlowArtistDocBlocking(
         .asFlux()
 }
 
+val wxView = view<Weather> {
+        html()
+            .head()
+                .title().dyn { m: Weather ->
+                    text(m.country)
+                }
+                .l // title
+            .l // head
+            .body()
+                .table().attrBorder(_1)
+                    .tr()
+                        .th().text("City").l
+                        .th().text("Temperature").l
+                    .l // tr
+                .dyn { m: Weather ->
+                    m.cities.forEach {
+                        tr()
+                            .td().text(it.city).l
+                            .td().text(it.celsius).l
+                        .l // tr
+                    }
+                }
+                .l // table
+            .l // body
+        .l // html
+}
 
+val wxRxView = view<WeatherRx> {
+    html()
+        .head()
+          .title().dyn { m: WeatherRx ->
+            text(m.country)
+          }
+          .l // title
+        .l // head
+        .body()
+          .table().attrBorder(_1)
+            .tr()
+              .th().text("City").l
+              .th().text("Temperature").l
+            .l // tr
+            .dyn { m: WeatherRx ->
+              m.cities.forEach {
+                tr()
+                    .td().text(it.city).l
+                    .td().text(it.celsius).l
+                .l // tr
+              }
+            }
+          .l // table
+        .l // body
+    .l // html
+}
+
+
+
+data class Weather(val country: String, val cities: Iterable<Location>)
+data class WeatherRx(val country: String, val cities: Observable<Location>)
+data class Location(val city: String, val desc: String, val celsius: Int)
