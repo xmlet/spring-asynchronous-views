@@ -49,7 +49,7 @@ public class TestArtistView {
     @Test
     public void testThymelafArtistBlocking() {
         final var html = request("/thymeleaf/blocking/artist/the%20rolling%20stones");
-        final var expected = "<!DOCTYPE html>" + lineSeparator() + expectedWellFormed();
+        final var expected = "<!DOCTYPE html>" + lineSeparator() + expectedThymeleafBlocking();
         assertHtml(expected, html);
     }
 
@@ -160,6 +160,37 @@ public class TestArtistView {
     }
 
     private static final String expectedWellFormed() {
+        return """
+           <html>
+           <body>
+           <h3>
+           The Rolling Stones
+           </h3>
+           <h3>
+           MusicBrainz info:
+           </h3>
+           <ul>
+           <li>
+           Founded: 1962
+           </li>
+           <li>
+           From: London
+           </li>
+           <li>
+           Genre: rock, blues rock, classic rock, psychedelic rock
+           </li>
+           </ul>
+           <p>
+           <b>
+           Spotify popular tracks:
+           </b>
+           Paint it Black, Start Me Up, Gimme Shelter, Satisfaction, Sympathy For The Devil 
+           </p>
+           </body>
+           </html>""";
+    }
+
+    private static final String expectedThymeleafBlocking() {
         return """
            <html>
            <body>

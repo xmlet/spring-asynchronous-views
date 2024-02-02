@@ -29,9 +29,7 @@ fun htmlFlowArtistDoc(
                 .doc(this)
                 .html()
                 .body()
-                .div()
                 .h3().text(artisName).l
-                .hr().l
                 .h3().text("MusicBrainz info:").l
                 .ul().of { ul -> musicBrainz
                     .thenAccept { ul
@@ -41,20 +39,14 @@ fun htmlFlowArtistDoc(
                     }
                     .thenAccept { ul
                         .l // ul
-                        .hr().l
+                        .p()
                         .b().text("Spotify popular tracks:").l
                         .of { div -> spotify
                             .thenAccept { song ->
-                                div.span().text(song.popularSongs.joinToString(", ")).l
+                                div.text(song.popularSongs.joinToString(", "))
                             }
                             .thenAccept { div
-                                .l // div
-                                .hr().l
-                                .footer()
-                                    .small()
-                                        .text("${currentTimeMillis() - startTime} ms (response handling time)")
-                                    .l // small
-                                .l // footer
+                                .l // p
                                 .l // body
                                 .l // html
                                 this.close()
@@ -69,12 +61,10 @@ fun htmlFlowArtistDoc(
 val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> page
 .html()
 .body()
-.div()
 .h3().dynamic<ArtistAsyncModel> {
     h3, m -> h3.text(m.artistName)
 }
 .l // h3
-.hr().l
 .h3().text("MusicBrainz info:").l
 .ul()
     .await<ArtistAsyncModel> { ul, m, cb -> m
@@ -87,26 +77,16 @@ val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> pag
         }
     }
 .l // ul
-.hr().l
+.p()
 .b().text("Spotify popular tracks:").l
-.span()
-    .await<ArtistAsyncModel> { span, m, cb -> m
+    .await<ArtistAsyncModel> { p, m, cb -> m
         .spotify
         .thenAccept { song ->
-            span.text(song.popularSongs.joinToString(", "))
+            p.text(song.popularSongs.joinToString(", "))
             cb.finish()
         }
     }
-.l // span
-.l // div
-.hr().l
-.footer()
-    .small()
-        .dynamic<ArtistAsyncModel> { small, m ->
-            small.text("${currentTimeMillis() - m.startTime} ms (response handling time)")
-        }
-    .l // small
-.l // footer
+.l // p
 .l // body
 .l // html
 }
@@ -114,40 +94,23 @@ val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> pag
 val htmlFlowArtistSuspendingView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> page
     .html()
     .body()
-    .div()
-    .h3().dynamic<ArtistAsyncModel> {
-            h3, m -> h3.text(m.artistName)
-    }
+    .h3().dyn { m: ArtistAsyncModel -> text(m.artistName) }
     .l // h3
-    .hr().l
     .h3().text("MusicBrainz info:").l
     .ul()
-    .suspending { ul, m: ArtistAsyncModel ->
+    .suspending { m: ArtistAsyncModel ->
         val mb = m.musicBrainz.await()
-        ul
-            .li().text("Founded: ${mb.year}").l
-            .li().text("From: ${mb.from}").l
-            .li().text("Genre: ${mb.genres}").l
-
+        li().text("Founded: ${mb.year}").l
+        li().text("From: ${mb.from}").l
+        li().text("Genre: ${mb.genres}").l
     }
     .l // ul
-    .hr().l
-    .b().text("Spotify popular tracks:").l
-    .span()
-    .suspending { span, m: ArtistAsyncModel ->
+    .p().b().text("Spotify popular tracks:").l
+    .suspending { m: ArtistAsyncModel ->
         val spotify = m.spotify.await()
-        span.text(spotify.popularSongs.joinToString(", "))
+        text(spotify.popularSongs.joinToString(", "))
     }
-    .l // span
-    .l // div
-    .hr().l
-    .footer()
-    .small()
-    .dynamic<ArtistAsyncModel> { small, m ->
-        small.text("${currentTimeMillis() - m.startTime} ms (response handling time)")
-    }
-    .l // small
-    .l // footer
+    .l // p
     .l // body
     .l // html
 }
@@ -178,9 +141,7 @@ fun htmlFlowArtistDocBlocking(
                 .doc(this)
                 .html()
                 .body()
-                .div()
                 .h3().text(artisName).l
-                .hr().l
                 .h3().text("MusicBrainz info:").l
                 .ul().of {
                     val musicBrainz = cfMusicBrainz.join()
@@ -189,19 +150,13 @@ fun htmlFlowArtistDocBlocking(
                     it.li().text("Genre: ${musicBrainz.genres}").l
                 }
                 .l // ul
-                .hr().l
+                .p()
                 .b().text("Spotify popular tracks:").l
-                .of { it.span().text(cfSpotify.join().popularSongs.joinToString(", ")).l }
+                .of { it.text(cfSpotify.join().popularSongs.joinToString(", ")) }
 //                .hr().l
 //                .b().text("Apple Music top songs:").l
 //                .of { it.span().text(cfApple.join().topSongs.joinToString(", ")).l }
-                .l // div
-                .hr().l
-                .footer()
-                    .small()
-                        .text("${currentTimeMillis() - startTime} ms (response handling time)")
-                    .l // small
-                .l // footer
+                .l // p
                 .l // body
                 .l // html
             this.close()

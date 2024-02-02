@@ -84,33 +84,25 @@ fun kotlinXArtistBlocking(
     return AppendableSink { appendHTML()
                 .html {
                     body {
-                        div {
-                            h3 { +"$artisName" }
-                            hr {  }
-                            h3 { +"MusicBrainz info:" }
-                            ul {
-                                val musicBrainz = cfMusicBrainz.join()
-                                li { +"Founded: ${musicBrainz.year}" }
-                                li { +"From: ${musicBrainz.from}" }
-                                li { +"Genre: ${musicBrainz.genres}" }
-                            }
-                            hr {  }
+                        h3 { +"$artisName" }
+                        h3 { +"MusicBrainz info:" }
+                        ul {
+                            val musicBrainz = cfMusicBrainz.join()
+                            li { +"Founded: ${musicBrainz.year}" }
+                            li { +"From: ${musicBrainz.from}" }
+                            li { +"Genre: ${musicBrainz.genres}" }
+                        }
+                        p {
                             b { +"Spotify popular tracks:" }
-                            span {
-                                +cfSpotify.join().popularSongs.joinToString(", ")
-                            }
-                            /*
-                            hr {  }
-                            b { +"Apple Music top songs:" }
-                            span {
-                                +cfApple.join().topSongs.joinToString(",")
-                            }
-                            */
+                            +cfSpotify.join().popularSongs.joinToString(", ")
                         }
+                        /*
                         hr {  }
-                        footer {
-                            small { +"${System.currentTimeMillis() - startTime} ms (response handling time)" }
+                        b { +"Apple Music top songs:" }
+                        span {
+                            +cfApple.join().topSongs.joinToString(",")
                         }
+                        */
                     }
                 }
             this.close()

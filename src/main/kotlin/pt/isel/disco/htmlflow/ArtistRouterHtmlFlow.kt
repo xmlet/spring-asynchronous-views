@@ -191,9 +191,9 @@ private fun handlerPlaylistSuspending(req: ServerRequest): Mono<ServerResponse> 
                 .body()
                 .table().attrBorder(EnumBorderType._1)
                 .tr().th().text("Track name").`__`().`__`()
-                .suspending { table, tracks: Flow<Track> ->
+                .suspending { tracks: Flow<Track> ->
                     tracks.collect{ track ->
-                        table.tr().td().text(track.name).`__`().`__`()
+                        tr().td().text(track.name).`__`().`__`()
                     }
                 }
                 .`__`() // table
