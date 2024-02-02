@@ -263,6 +263,35 @@ val wxRxView = view<WeatherRx> {
     .l // html
 }
 
+val wxSuspView: HtmlViewAsync<WeatherRx> = viewAsync<WeatherRx> {
+    html()
+        .head()
+        .title().dyn { m: WeatherRx ->
+            text(m.country)
+        }
+        .l // title
+        .l // head
+        .body()
+        .table().attrBorder(_1)
+        .tr()
+        .th().text("City").l
+        .th().text("Temperature").l
+        .l // tr
+        .await { table, m: WeatherRx, cb ->
+            m.cities
+                .doOnComplete { cb.finish() }
+                .forEach { table
+                    .tr()
+                        .td().text(it.city).l
+                        .td().text(it.celsius).l
+                    .l // tr
+                }
+        }
+        .l // table
+        .l // body
+        .l // html
+}
+
 
 
 data class Weather(val country: String, val cities: Iterable<Location>)
