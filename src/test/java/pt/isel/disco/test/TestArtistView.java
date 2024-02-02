@@ -10,6 +10,7 @@ import pt.isel.disco.model.Artist;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Iterator;
 
 import static java.lang.System.lineSeparator;
 import static java.util.Arrays.stream;
@@ -94,9 +95,9 @@ public class TestArtistView {
     /*---------------------           HtmlFlow           ---------------------*/
     /*========================================================================*/
     @Test
-    public void testHtmlFlowArtistBlocking() {
+    public void testHtmlFlowArtistSync() {
         final var html = request("/htmlflow/blocking/artist/the%20rolling%20stones");
-        final var expected = "<!DOCTYPE html>" + lineSeparator() + expectedWellFormed();
+        final var expected = "<!DOCTYPE html>" + lineSeparator() + expectedIllFormed();
         assertHtml(expected, html);
     }
 
@@ -136,7 +137,7 @@ public class TestArtistView {
     }
 
     private void assertHtml(String expected, String html) {
-        String[] actual = stream(html
+        Iterator<String> actual = stream(html
                 .replace("<", lineSeparator() + "<")
                 .replace(">", ">" + lineSeparator())
                 .replace("'", "\"")
@@ -144,19 +145,21 @@ public class TestArtistView {
                 .filter(s -> !s.contains("(response handling time)"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                .toArray(String[]::new);
+                .iterator();
 
-        String[] expectedLines = stream(expected
+
+        Iterator<String> expectedLines = stream(expected
                 .split(lineSeparator()))
                 .filter(s -> !s.contains("(response handling time)"))
                 .map(String::trim)
-                .toArray(String[]::new);
+                .iterator();
 
-        for (int i = 0; i < expectedLines.length; i++) {
-            assertEquals(expectedLines[i], actual[i]);
+        while (actual.hasNext()) {
+            String line = actual.next();
+//            System.out.println(line);
+            assertEquals(expectedLines.next(), line);
         }
-
-        assertFalse(actual.length > expectedLines.length);
+        assertFalse(expectedLines.hasNext());
     }
 
     private static final String expectedWellFormed() {
@@ -185,6 +188,27 @@ public class TestArtistView {
            Spotify popular tracks:
            </b>
            Paint it Black, Start Me Up, Gimme Shelter, Satisfaction, Sympathy For The Devil 
+           </p>
+           </body>
+           </html>""";
+    }
+
+    private static final String expectedIllFormed() {
+        return """
+           <html>
+           <body>
+           <h3>
+           The Rolling Stones
+           </h3>
+           <h3>
+           MusicBrainz info:
+           </h3>
+           <ul>
+           </ul>
+           <p>
+           <b>
+           Spotify popular tracks:
+           </b>
            </p>
            </body>
            </html>""";

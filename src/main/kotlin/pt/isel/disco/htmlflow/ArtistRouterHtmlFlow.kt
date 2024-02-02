@@ -104,17 +104,23 @@ private fun htmlflowBlockingHandlerArtist(req: ServerRequest): Mono<ServerRespon
     val artist: Artist = requireNotNull(artists[name.lowercase()]) {
         "No resource for artist name $name"
     }
-    val view: Publisher<String> = htmlFlowArtistDocBlocking(
-        currentTimeMillis(),
-        artist.name,
-        artist.monoMusicBrainz(),
-        artist.monoSpotify(),
-        artist.monoApple()
-    )
+    val html: Publisher<String> = AppendableSink {
+          htmlFlowArtistBlocking
+            .setOut(this)
+            .write(ArtistAsync(
+                currentTimeMillis(),
+                artist.name,
+                artist.monoMusicBrainz(),
+                artist.monoSpotify(),
+                artist.monoApple()
+            ))
+          close()
+        }
+        .asFlux()
     return ServerResponse
         .ok()
         .contentType(MediaType.TEXT_HTML)
-        .body(view, object : ParameterizedTypeReference<String>() {})
+        .body(html, object : ParameterizedTypeReference<String>() {})
 }
 
 private fun htmlflowReactiveHandlerArtist(req: ServerRequest): Mono<ServerResponse> {
@@ -135,12 +141,12 @@ private fun htmlflowReactiveHandlerArtist(req: ServerRequest): Mono<ServerRespon
         .body(view, object : ParameterizedTypeReference<String>() {})
 }
 
-private fun htmlflowAsyncViewHandlerArtist(view: (AppendableSink, ArtistAsyncModel) -> Unit): (ServerRequest) -> Mono<ServerResponse> = { req ->
+private fun htmlflowAsyncViewHandlerArtist(view: (AppendableSink, ArtistAsync) -> Unit): (ServerRequest) -> Mono<ServerResponse> = { req ->
     val name = req.pathVariable("name")
     val artist: Artist = requireNotNull(artists[name.lowercase()]) {
         "No resource for artist name $name"
     }
-    val model = ArtistAsyncModel(
+    val model = ArtistAsync(
         currentTimeMillis(),
         artist.name,
         artist.monoMusicBrainz(),

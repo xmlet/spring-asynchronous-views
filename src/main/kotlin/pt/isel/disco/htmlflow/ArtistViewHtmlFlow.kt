@@ -9,7 +9,6 @@ import pt.isel.disco.AppendableSink
 import pt.isel.disco.model.AppleMusicArtist
 import pt.isel.disco.model.MusicBrainz
 import pt.isel.disco.model.SpotifyArtist
-import java.lang.System.currentTimeMillis
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -58,16 +57,16 @@ fun htmlFlowArtistDoc(
         .asFlux()
 }
 
-val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> page
+val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsync> { page -> page
 .html()
 .body()
-.h3().dynamic<ArtistAsyncModel> {
+.h3().dynamic<ArtistAsync> {
     h3, m -> h3.text(m.artistName)
 }
 .l // h3
 .h3().text("MusicBrainz info:").l
 .ul()
-    .await<ArtistAsyncModel> { ul, m, cb -> m
+    .await<ArtistAsync> { ul, m, cb -> m
         .musicBrainz
         .thenAccept { ul
             .li().text("Founded: ${it.year}").l
@@ -79,7 +78,7 @@ val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> pag
 .l // ul
 .p()
 .b().text("Spotify popular tracks:").l
-    .await<ArtistAsyncModel> { p, m, cb -> m
+    .await<ArtistAsync> { p, m, cb -> m
         .spotify
         .thenAccept { song ->
             p.text(song.popularSongs.joinToString(", "))
@@ -91,14 +90,14 @@ val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> pag
 .l // html
 }
 
-val htmlFlowArtistSuspendingView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -> page
+val htmlFlowArtistSuspendingView = HtmlFlow.viewAsync<ArtistAsync> { page -> page
     .html()
     .body()
-    .h3().dyn { m: ArtistAsyncModel -> text(m.artistName) }
+    .h3().dyn { m: ArtistAsync -> text(m.artistName) }
     .l // h3
     .h3().text("MusicBrainz info:").l
     .ul()
-    .suspending { m: ArtistAsyncModel ->
+    .suspending { m: ArtistAsync ->
         val mb = m.musicBrainz.await()
         li().text("Founded: ${mb.year}").l
         li().text("From: ${mb.from}").l
@@ -106,7 +105,7 @@ val htmlFlowArtistSuspendingView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -
     }
     .l // ul
     .p().b().text("Spotify popular tracks:").l
-    .suspending { m: ArtistAsyncModel ->
+    .suspending { m: ArtistAsync ->
         val spotify = m.spotify.await()
         text(spotify.popularSongs.joinToString(", "))
     }
@@ -116,7 +115,7 @@ val htmlFlowArtistSuspendingView = HtmlFlow.viewAsync<ArtistAsyncModel> { page -
 }
 
 
-class ArtistAsyncModel(
+class ArtistAsync(
     val startTime: Long,
     val artistName: String,
     val musicBrainz: CompletableFuture<MusicBrainz>,
@@ -129,39 +128,29 @@ class ArtistAsyncModel(
  * avoiding nested continuations in doOnComplete().
  * On the other, it is blocking on every CF with join().
  */
-fun htmlFlowArtistDocBlocking(
-    startTime: Long,
-    artisName: String,
-    cfMusicBrainz: CompletableFuture<MusicBrainz>,
-    cfSpotify: CompletableFuture<SpotifyArtist>,
-    cfApple: CompletableFuture<AppleMusicArtist>
-) : Publisher<String> {
-    return AppendableSink {
-            HtmlFlow
-                .doc(this)
-                .html()
-                .body()
-                .h3().text(artisName).l
-                .h3().text("MusicBrainz info:").l
-                .ul().of {
-                    val musicBrainz = cfMusicBrainz.join()
-                    it.li().text("Founded: ${musicBrainz.year}").l
-                    it.li().text("From: ${musicBrainz.from}").l
-                    it.li().text("Genre: ${musicBrainz.genres}").l
-                }
-                .l // ul
-                .p()
-                .b().text("Spotify popular tracks:").l
-                .of { it.text(cfSpotify.join().popularSongs.joinToString(", ")) }
+val htmlFlowArtistBlocking = HtmlFlow.view<ArtistAsync> { page -> page
+    .html()
+    .body()
+    .h3().dyn { m: ArtistAsync ->  text(m.artistName) }.l
+    .h3().text("MusicBrainz info:").l
+    .ul()
+      .dyn { m: ArtistAsync -> m.musicBrainz.thenAccept { mb ->
+        li().text("Founded: ${mb.year}").l
+        li().text("From: ${mb.from}").l
+        li().text("Genre: ${mb.genres}").l
+      }}
+    .l // ul
+    .p()
+    .b().text("Spotify popular tracks:").l
+    .dyn { m: ArtistAsync -> m.spotify.thenAccept { spt ->
+        text(spt.popularSongs.joinToString(", "))
+    }}
 //                .hr().l
 //                .b().text("Apple Music top songs:").l
 //                .of { it.span().text(cfApple.join().topSongs.joinToString(", ")).l }
-                .l // p
-                .l // body
-                .l // html
-            this.close()
-        }
-        .asFlux()
+    .l // p
+    .l // body
+    .l // html
 }
 
 val wxView = view<Weather> {
