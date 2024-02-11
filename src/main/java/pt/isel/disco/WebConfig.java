@@ -19,6 +19,11 @@ public class WebConfig {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> corouterArtistHtmlFlow() {
+        return ArtistRouterHtmlFlowKt.artistCoRouterHtmlFlow();
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> routerArtistKotlinX() {
         return ArtistRouterKotlinxKt.artistCoRouterKotlinX();
     }

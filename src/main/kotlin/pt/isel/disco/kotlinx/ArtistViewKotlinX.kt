@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture
  * Illegal due to crossinline lambdas used in builders that loose the coroutine context.
  */
 suspend fun kotlinXArtistCoroutine(cfMusicBrainz: Mono<MusicBrainz>): Publisher<String> {
-    return AppendableSink {
+    return AppendableSink().start {
             // val artist = cfMusicBrainz.toFuture().await() // OK but delays start emitting HTML
                 appendHTML()
                 .html {
@@ -39,7 +39,7 @@ fun kotlinXArtistReactive(
     musicBrainz: CompletableFuture<MusicBrainz>,
     spotify: CompletableFuture<SpotifyArtist>
 ): AppendableSink {
-    return AppendableSink {
+    return AppendableSink().start {
         appendHTML()
             .html {
                 body { // body
@@ -81,7 +81,7 @@ fun kotlinXArtistBlocking(
     cfSpotify: CompletableFuture<SpotifyArtist>,
     cfApple: CompletableFuture<AppleMusicArtist>,
 ): Publisher<String> {
-    return AppendableSink { appendHTML()
+    return AppendableSink().start { appendHTML()
                 .html {
                     body {
                         h3 { +"$artisName" }

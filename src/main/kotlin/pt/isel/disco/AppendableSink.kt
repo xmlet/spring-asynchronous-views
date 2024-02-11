@@ -5,11 +5,17 @@ import reactor.core.publisher.Sinks
 import reactor.core.publisher.Sinks.EmitFailureHandler
 
 
-class AppendableSink(block: AppendableSink.() -> Unit) : Appendable, AutoCloseable {
+class AppendableSink : Appendable, AutoCloseable {
     private val sink = Sinks.many().replay().all<String>()
 
-    init {
+    inline fun start(block: AppendableSink.() -> Unit) : AppendableSink{
         this.block()
+        return this
+    }
+
+    suspend inline fun startSuspending(crossinline block: suspend AppendableSink.() -> Unit) : AppendableSink{
+        this.block()
+        return this
     }
 
     override fun close() {

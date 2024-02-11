@@ -76,7 +76,7 @@ private suspend fun handlerArtistKotlinXBlocking(req: ServerRequest): ServerResp
 }
 
 private suspend fun handlerJatl(req: ServerRequest): ServerResponse {
-    val view: AppendableSink = AppendableSink {
+    val view: AppendableSink = AppendableSink().start {
         appendHTML()
             .html {
                 head { title("Playlist") }
