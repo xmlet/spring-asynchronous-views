@@ -12,11 +12,21 @@ static void playlistView(Writer out, Observable<Track> tracks) {
             table(border: "1") {
                 tr { th("Track name") }
                 tracks
+                /**
+                 * Ill-formed HTML but enbales PSSR
+                 */
                     .doOnNext { track ->
                         tr { td(track.name) }
                     }
                     .doOnComplete { out.close() }
                     .subscribe()
+                /**
+                 * Well-formed HTML but prevents PSSR
+                 */
+//                    .blockingForEach { track ->
+//                        tr { td(track.name) }
+//                    }
+//                out.close()
             } // table
         } // body
     } // html
