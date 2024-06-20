@@ -58,16 +58,16 @@ fun htmlFlowArtistDoc(
         .asFlux()
 }
 
-val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsync> { page -> page
+val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<Artist> { page -> page
 .html()
 .body()
-.h3().dynamic<ArtistAsync> {
+.h3().dynamic<Artist> {
     h3, m -> h3.text(m.name)
 }
 .l // h3
 .h3().text("MusicBrainz info:").l
 .ul()
-    .await<ArtistAsync> { ul, m, cb -> m
+    .await<Artist> { ul, m, cb -> m
         .musicBrainz
         .thenAccept { ul
             .li().text("Founded: ${it.year}").l
@@ -79,7 +79,7 @@ val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsync> { page -> page
 .l // ul
 .p()
 .b().text("Spotify popular tracks:").l
-    .await<ArtistAsync> { p, m, cb -> m
+    .await<Artist> { p, m, cb -> m
         .spotify
         .thenAccept { song ->
             p.text(song.popularSongs.joinToString(", "))
@@ -91,32 +91,31 @@ val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<ArtistAsync> { page -> page
 .l // html
 }
 
-val htmlFlowArtistSuspendingView = viewSuspend<ArtistAsync> {
-    html()
-    .body()
-    .h3().dyn { m: ArtistAsync -> text(m.name) }
-    .l // h3
-    .h3().text("MusicBrainz info:").l
-    .ul()
-    .suspending { m: ArtistAsync ->
-        val mb = m.musicBrainz.await()
-        li().text("Founded: ${mb.year}").l
-        li().text("From: ${mb.from}").l
-        li().text("Genre: ${mb.genres}").l
-    }
-    .l // ul
-    .p().b().text("Spotify popular tracks:").l
-    .suspending { m: ArtistAsync ->
-        val spotify = m.spotify.await()
-        text(spotify.popularSongs.joinToString(", "))
-    }
-    .l // p
-    .l // body
-    .l // html
+val htmlFlowArtistSuspendingView = viewSuspend<Artist> {
+  html {
+    body {
+      h3 { dyn { m: Artist -> text(m.name) } }
+      h3 { text("MusicBrainz info:") }
+      ul {
+        suspending { m: Artist ->
+          val mb = m.musicBrainz.await()
+          li { text("Founded: ${mb.year}") }
+          li { text("From: ${mb.from}") }
+          li { text("Genre: ${mb.genres}") }
+        }
+      }
+      p {
+        b { +"Spotify popular tracks:" }
+        suspending { m: Artist ->
+          val spotify = m.spotify.await()
+          text(spotify.popularSongs.joinToString(", "))
+        }
+      } // p
+    } // body
+  } // html
 }
 
-
-class ArtistAsync(
+class Artist(
     val startTime: Long,
     val name: String,
     val musicBrainz: CompletableFuture<MusicBrainz>,
@@ -124,92 +123,88 @@ class ArtistAsync(
     val apple: CompletableFuture<AppleMusicArtist>,
 )
 
-/**
- * This web template solves the "pyramid of doom" of former htmlFlowArtistDocBlocking,
- * avoiding nested continuations in doOnComplete().
- * On the other, it is blocking on every CF with join().
- */
-val htmlFlowArtistBlocking = view<ArtistAsync> {
-    html()
-    .body()
-    .h3().dyn { m: ArtistAsync ->  text(m.name) }.l
-    .h3().text("MusicBrainz info:").l
-    .ul()
-      .dyn { m: ArtistAsync -> m.musicBrainz.thenAccept {
-        li().text("Founded: ${it.year}").l
-        li().text("From: ${it.from}").l
-        li().text("Genre: ${it.genres}").l
-      }}
-    .l // ul
-    .p()
-    .b().text("Spotify popular tracks:").l
-    .dyn { m: ArtistAsync -> m.spotify.thenAccept {
-        text(join(", ", it.popularSongs))
-    }}
-//                .hr().l
-//                .b().text("Apple Music top songs:").l
-//                .of { it.span().text(cfApple.join().topSongs.joinToString(", ")).l }
-    .l // p
-    .l // body
-    .l // html
+val artistView: HtmlView<Artist> = view<Artist> {
+  html {
+    body {
+      h3 {
+        dyn { m: Artist ->  text(m.name) }
+      } // h3
+      h3 { +"MusicBrainz info:" }
+      ul {
+        dyn { m: Artist -> m.musicBrainz
+          .thenAccept {
+            li { +"Founded: ${it.year}" }
+            li { +"From: ${it.from}" }
+            li { +"Genre: ${it.genres}" }
+          }  // thenAccept
+        } // dyn
+      } // ul
+      p {
+        b { +"Spotify popular tracks:" }
+        dyn { m: Artist -> m.spotify
+          .thenAccept {
+            text(join(", ", it.popularSongs))
+          } // thenAccept
+        } // dyn
+      } // p
+    } // body
+  } // html
 }
 
-val wxView = view<Weather> {
-        html()
-            .head()
-                .title().dyn { m: Weather ->
+val wxView: HtmlView<Weather> = view<Weather> {
+        html {
+            head {
+                title { dyn { m: Weather ->
                     text(m.country)
-                }
-                .l // title
-            .l // head
-            .body()
-                .table().attrBorder(_1)
-                    .tr()
-                        .th().text("City").l
-                        .th().text("Temperature").l
-                    .l // tr
-                .dyn { m: Weather ->
-                    m.cities.forEach {
-                        tr()
-                            .td().text(it.city).l
-                            .td().text(it.celsius).l
-                        .l // tr
+                } } // title
+            } // head
+            body {
+                table { attrBorder(_1)
+                    tr {
+                        th { +"City" }
+                        th { +"Temperature" }
                     }
-                }
-                .l // table
-            .l // body
-        .l // html
+                    dyn { m: Weather ->
+                        m.cities.forEach {
+                            tr {
+                                td { text(it.city) }
+                                td { text(it.celsius) }
+                            }
+                        }
+                    }
+                } // table
+            } // body
+        } // html
 }
 
 /**
  * Show a Mallformed HTML using an HtmlView with dyn and forEach
  * on an Observable.
  */
-val wxRxView = view<WeatherRx> {
-    html()
-        .head()
-          .title().dyn { m: WeatherRx ->
-            text(m.country)
-          }
-          .l // title
-        .l // head
-        .body()
-          .table().attrBorder(_1)
-            .tr()
-              .th().text("City").l
-              .th().text("Temperature").l
-            .l // tr
-            .dyn { m: WeatherRx-> // Show a Mallformed HTML
-                m.cities.forEach {
-                  tr()
-                    .td().text(it.city).l
-                    .td().text(it.celsius).l
-                  .l // tr
-              }
-            }
-          .l // table
-        .l // body
-    .l // html
+val wxRxView: HtmlView<WeatherRx> = view<WeatherRx> {
+    html {
+        head {
+            title { dyn { m: WeatherRx ->
+                text(m.country)
+            } } // title
+        } // head
+        body {
+            table { attrBorder(_1)
+                tr {
+                    th { text("City") }
+                    th { text("Temperature") }
+                }
+                dyn { m: WeatherRx ->
+                    m.cities.forEach {
+                        tr {
+                            td { text(it.city) }
+                            td { text(it.celsius) }
+                        }
+                    }
+                }
+            } // table
+        } // body
+    } // html
 }
 
 val wxSuspView: HtmlViewAsync<WeatherRx> = viewAsync<WeatherRx> {
@@ -244,5 +239,5 @@ val wxSuspView: HtmlViewAsync<WeatherRx> = viewAsync<WeatherRx> {
 
 
 data class Weather(val country: String, val cities: Iterable<Location>)
-data class WeatherRx(val country: String, val cities: Observable<Location>)
+data class WeatherRx(val country: String, var cities: Observable<Location>)
 data class Location(val city: String, val desc: String, val celsius: Int)

@@ -72,6 +72,9 @@ private fun htmlflowReactiveHandlerWeather(req: ServerRequest): Mono<ServerRespo
         ).concatMap { Observable.just(it).delay(1000, TimeUnit.MILLISECONDS) }
     )
     val html = AppendableSink().start {
+        portugal.cities = portugal.cities.doOnComplete {
+            close()
+        }
         wxRxView.setOut(this).write(portugal)
     }.asFlux()
     return ServerResponse
@@ -102,15 +105,17 @@ private fun htmlflowBlockingHandlerArtist(req: ServerRequest): Mono<ServerRespon
         "No resource for artist name $name"
     }
     val html: Publisher<String> = AppendableSink().start {
-          htmlFlowArtistBlocking
+          artistView
             .setOut(this)
-            .write(ArtistAsync(
-                currentTimeMillis(),
-                artist.name,
-                artist.monoMusicBrainz(),
-                artist.monoSpotify(),
-                artist.monoApple()
-            ))
+            .write(
+                Artist(
+                    currentTimeMillis(),
+                    artist.name,
+                    artist.monoMusicBrainz(),
+                    artist.monoSpotify(),
+                    artist.monoApple()
+                )
+            )
           close()
         }
         .asFlux()
@@ -143,7 +148,7 @@ private fun htmlflowAsyncViewHandlerArtist(req: ServerRequest): Mono<ServerRespo
     val artist: Artist = requireNotNull(artists[name.lowercase()]) {
         "No resource for artist name $name"
     }
-    val model = ArtistAsync(
+    val model = Artist(
         currentTimeMillis(),
         artist.name,
         artist.monoMusicBrainz(),
@@ -165,7 +170,7 @@ private suspend fun htmlflowSuspendViewHandlerArtist(req: ServerRequest): Server
     val artist: Artist = requireNotNull(artists[name.lowercase()]) {
         "No resource for artist name $name"
     }
-    val model = ArtistAsync(
+    val model = Artist(
         currentTimeMillis(),
         artist.name,
         artist.monoMusicBrainz(),

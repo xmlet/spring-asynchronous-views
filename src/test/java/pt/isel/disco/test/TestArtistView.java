@@ -30,7 +30,7 @@ public class TestArtistView {
         DiscoRepository.INSTANCE.setTimeout(10);
     }
 
-    private static String request(String path) {
+    static String request(String path) {
         byte[] arr = webTestClient
                 .get()
                 .uri(URI.create(path))
@@ -136,7 +136,7 @@ public class TestArtistView {
         assertHtml(expected, html);
     }
 
-    private void assertHtml(String expected, String html) {
+    static void assertHtml(String expected, String html) {
         Iterator<String> actual = stream(html
                 .replace("<", lineSeparator() + "<")
                 .replace(">", ">" + lineSeparator())

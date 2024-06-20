@@ -34,7 +34,7 @@ dependencies {
  	 * DSLs for HTML
 	 */
 	implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.8.0")
-	implementation("com.github.xmlet:htmlflow:4.5-SNAPSHOT")
+	implementation("com.github.xmlet:htmlflow:4.6")
 	implementation("io.reactivex.rxjava3:rxjava:3.1.8")
 	implementation("com.googlecode.jatl:jatl:0.2.3")
 	implementation("com.j2html:j2html:1.6.0")
