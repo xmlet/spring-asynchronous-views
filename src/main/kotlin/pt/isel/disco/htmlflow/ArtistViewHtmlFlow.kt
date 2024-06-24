@@ -162,7 +162,7 @@ val wxView: HtmlView<Weather> = view<Weather> {
                 table { attrBorder(_1)
                     tr {
                         th { +"City" }
-                        th { +"Temperature" }
+                        th { +"Celsius" }
                     }
                     dyn { m: Weather ->
                         m.cities.forEach {
@@ -192,7 +192,7 @@ val wxRxView: HtmlView<WeatherRx> = view<WeatherRx> {
             table { attrBorder(_1)
                 tr {
                     th { text("City") }
-                    th { text("Temperature") }
+                    th { text("Celsius") }
                 }
                 dyn { m: WeatherRx ->
                     m.cities.forEach {
@@ -219,7 +219,7 @@ val wxSuspView: HtmlViewAsync<WeatherRx> = viewAsync<WeatherRx> {
         .table().attrBorder(_1)
         .tr()
         .th().text("City").l
-        .th().text("Temperature").l
+        .th().text("Celsius").l
         .l // tr
         .await { table, m: WeatherRx, cb ->
             m.cities

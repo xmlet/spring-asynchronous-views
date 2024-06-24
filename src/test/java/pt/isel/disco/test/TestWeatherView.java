@@ -9,13 +9,13 @@ public class TestWeatherView {
 
     @Test
     public void testHtmlFlowWeatherBlocking() {
-        final var html = request("/htmlflow/blocking/weather/portugal");
+        final var html = request("/htmlflow/blocking/weather/australia");
         assertHtml(expectedWellFormed(), html);
     }
 
     @Test
     public void testHtmlFlowWeatherReactiveMalformed() {
-        final var html = request("/htmlflow/reactive/weather/portugal");
+        final var html = request("/htmlflow/reactive/weather/australia");
         assertHtml(expectedMalformed(), html);
     }
 
@@ -25,7 +25,7 @@ public class TestWeatherView {
 <html>
 	<head>
 		<title>
-			Portugal
+			Australia
 		</title>
 	</head>
 	<body>
@@ -35,31 +35,31 @@ public class TestWeatherView {
 					City
 				</th>
 				<th>
-					Temperature
+					Celsius
 				</th>
 			</tr>
 			<tr>
 				<td>
-					Porto
+					Adelaide
 				</td>
 				<td>
-					14
-				</td>
-			</tr>
-			<tr>
-				<td>
-					Lisbon
-				</td>
-				<td>
-					14
+					9
 				</td>
 			</tr>
 			<tr>
 				<td>
-					Sagres
+					Darwin
 				</td>
 				<td>
-					18
+					31
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Perth
+				</td>
+				<td>
+					16
 				</td>
 			</tr>
 		</table>
@@ -74,7 +74,7 @@ public class TestWeatherView {
 <html>
 	<head>
 		<title>
-			Portugal
+			Australia
 		</title>
 	</head>
 	<body>
@@ -84,7 +84,7 @@ public class TestWeatherView {
 					City
 				</th>
 				<th>
-					Temperature
+					Celsius
 				</th>
 			</tr>
 		</table>
@@ -92,26 +92,26 @@ public class TestWeatherView {
 </html>
 		<tr>
 			<td>
-				Porto
+				Adelaide
 			</td>
 			<td>
-				14
-			</td>
-		</tr>
-		<tr>
-			<td>
-				Lisbon
-			</td>
-			<td>
-				14
+				9
 			</td>
 		</tr>
 		<tr>
 			<td>
-				Sagres
+				Darwin
 			</td>
 			<td>
-				18
+				31
+			</td>
+		</tr>
+		<tr>
+			<td>
+				Perth
+			</td>
+			<td>
+				16
 			</td>
 		</tr>
                 """;

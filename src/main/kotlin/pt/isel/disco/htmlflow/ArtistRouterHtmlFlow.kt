@@ -28,9 +28,9 @@ fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
         .route()
         .path("/htmlflow") { builder ->
             builder
-                .GET("/blocking/weather/portugal", ::htmlflowBlockingHandlerWeather)
-                .GET("/reactive/weather/portugal", ::htmlflowReactiveHandlerWeather)
-                .GET("/suspending/weather/portugal", ::htmlflowSuspendingHandlerWeather)
+                .GET("/blocking/weather/australia", ::htmlflowBlockingHandlerWeather)
+                .GET("/reactive/weather/australia", ::htmlflowReactiveHandlerWeather)
+                .GET("/suspending/weather/australia", ::htmlflowSuspendingHandlerWeather)
                 .GET("/blocking/artist/{name}", ::htmlflowBlockingHandlerArtist)
                 .GET("/reactive/artist/{name}", ::htmlflowReactiveHandlerArtist)
                 .GET("/reactive/playlist", ::handlerPlaylist)
@@ -49,12 +49,12 @@ fun artistCoRouterHtmlFlow() = coRouter {
 
 
 private fun htmlflowBlockingHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
-    val portugal = Weather("Portugal", listOf(
-        Location("Porto", "Light rain", 14),
-        Location("Lisbon", "Sunny day", 14),
-        Location("Sagres", "Sunny day", 18)))
+    val australia = Weather("Australia", listOf(
+        Location("Adelaide", "Light rain", 9),
+        Location("Darwin", "Sunny day", 31),
+        Location("Perth", "Sunny day", 16)))
     val html = AppendableSink().start {
-        wxView.setOut(this).write(portugal)
+        wxView.setOut(this).write(australia)
         this.close()
     }.asFlux()
 
@@ -64,18 +64,18 @@ private fun htmlflowBlockingHandlerWeather(req: ServerRequest): Mono<ServerRespo
         .body(html, object : ParameterizedTypeReference<String>() {})
 }
 private fun htmlflowReactiveHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
-    val portugal = WeatherRx("Portugal", Observable
+    val australia = WeatherRx("Australia", Observable
         .fromArray(
-            Location("Porto", "Light rain", 14),
-            Location("Lisbon", "Sunny day", 14),
-            Location("Sagres", "Sunny day", 18)
+            Location("Adelaide", "Light rain", 9),
+            Location("Darwin", "Sunny day", 31),
+            Location("Perth", "Sunny day", 16)
         ).concatMap { Observable.just(it).delay(1000, TimeUnit.MILLISECONDS) }
     )
     val html = AppendableSink().start {
-        portugal.cities = portugal.cities.doOnComplete {
+        australia.cities = australia.cities.doOnComplete {
             close()
         }
-        wxRxView.setOut(this).write(portugal)
+        wxRxView.setOut(this).write(australia)
     }.asFlux()
     return ServerResponse
         .ok()
@@ -83,15 +83,15 @@ private fun htmlflowReactiveHandlerWeather(req: ServerRequest): Mono<ServerRespo
         .body(html, object : ParameterizedTypeReference<String>() {})
 }
 private fun htmlflowSuspendingHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
-    val portugal = WeatherRx("Portugal", Observable
+    val australia = WeatherRx("Australia", Observable
         .fromArray(
-            Location("Porto", "Light rain", 14),
-            Location("Lisbon", "Sunny day", 14),
-            Location("Sagres", "Sunny day", 18)
+            Location("Adelaide", "Light rain", 9),
+            Location("Darwin", "Sunny day", 31),
+            Location("Perth", "Sunny day", 16)
         ).concatMap { Observable.just(it).delay(10000, TimeUnit.MILLISECONDS) }
     )
     val html = AppendableSink().start {
-        wxSuspView.writeAsync(this, portugal).thenAccept { this.close() }
+        wxSuspView.writeAsync(this, australia).thenAccept { this.close() }
     }.asFlux()
     return ServerResponse
         .ok()
