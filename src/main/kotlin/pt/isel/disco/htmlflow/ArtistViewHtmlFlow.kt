@@ -11,6 +11,10 @@ import pt.isel.disco.model.MusicBrainz
 import pt.isel.disco.model.SpotifyArtist
 import java.util.concurrent.CompletableFuture
 import java.lang.String.join
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 /**
  * This web template produces well-formed HTML, and it is non-blocking.
@@ -24,9 +28,9 @@ fun htmlFlowArtistDoc(
     spotify: CompletableFuture<SpotifyArtist>,
     apple: CompletableFuture<AppleMusicArtist>
 ) : Publisher<String> {
-    return AppendableSink().start {
+    return AppendableSink().also { out ->
             HtmlFlow
-                .doc(this)
+                .doc(out)
                 .html()
                 .body()
                 .h3().text(artisName).l
@@ -49,7 +53,7 @@ fun htmlFlowArtistDoc(
                                 .l // p
                                 .l // body
                                 .l // html
-                                this.close()
+                                out.close()
                             }
                         }
                     }
@@ -91,6 +95,25 @@ val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<Artist> { page -> page
 .l // html
 }
 
+class SuspendableCf<T>(private val cf: CompletableFuture<T>) {
+
+  suspend fun holdFor() : T {
+    return awaitHandle(cf)
+  }
+
+  val awaitHandle = ::awaitCps as (suspend (CompletableFuture<T>) -> T)
+
+  private fun awaitCps(cf: CompletableFuture<T>, cont: Continuation<T>) : Any {
+    cf.whenComplete { res, err ->
+      if (err == null) // completed normally
+        cont.resume(res)
+      else // completed with an exception
+        cont.resumeWithException(err)
+    }
+    return COROUTINE_SUSPENDED
+  }
+}
+
 val htmlFlowArtistSuspendingView = viewSuspend<Artist> {
   html {
     body {
@@ -98,7 +121,7 @@ val htmlFlowArtistSuspendingView = viewSuspend<Artist> {
       h3 { text("MusicBrainz info:") }
       ul {
         suspending { m: Artist ->
-          val mb = m.musicBrainz.await()
+          val mb = SuspendableCf(m.musicBrainz).holdFor()
           li { text("Founded: ${mb.year}") }
           li { text("From: ${mb.from}") }
           li { text("Genre: ${mb.genres}") }

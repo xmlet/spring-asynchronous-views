@@ -5,7 +5,10 @@ import htmlflow.suspending
 import htmlflow.viewSuspend
 import io.reactivex.rxjava3.core.BackpressureStrategy
 import io.reactivex.rxjava3.core.Observable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.reactivestreams.Publisher
@@ -22,6 +25,14 @@ import reactor.core.publisher.Mono
 import java.lang.System.currentTimeMillis
 import java.util.concurrent.TimeUnit
 
+
+/**
+ * It executes the initial continuation of a coroutine in the current
+ * call-frame and lets the coroutine resume in whatever thread.
+ * Better performance but not suitable for blocking IO, only for NIO.
+ * NIO will release threads to perform other task.
+ */
+private val unconf = CoroutineScope(Dispatchers.Unconfined)
 
 fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
     return RouterFunctions
@@ -53,9 +64,9 @@ private fun htmlflowBlockingHandlerWeather(req: ServerRequest): Mono<ServerRespo
         Location("Adelaide", "Light rain", 9),
         Location("Darwin", "Sunny day", 31),
         Location("Perth", "Sunny day", 16)))
-    val html = AppendableSink().start {
-        wxView.setOut(this).write(australia)
-        this.close()
+    val html = AppendableSink().also {
+        wxView.setOut(it).write(australia)
+        it.close()
     }.asFlux()
 
     return ServerResponse
@@ -71,11 +82,11 @@ private fun htmlflowReactiveHandlerWeather(req: ServerRequest): Mono<ServerRespo
             Location("Perth", "Sunny day", 16)
         ).concatMap { Observable.just(it).delay(1000, TimeUnit.MILLISECONDS) }
     )
-    val html = AppendableSink().start {
+    val html = AppendableSink().also {
         australia.cities = australia.cities.doOnComplete {
-            close()
+            it.close()
         }
-        wxRxView.setOut(this).write(australia)
+        wxRxView.setOut(it).write(australia)
     }.asFlux()
     return ServerResponse
         .ok()
@@ -90,8 +101,8 @@ private fun htmlflowSuspendingHandlerWeather(req: ServerRequest): Mono<ServerRes
             Location("Perth", "Sunny day", 16)
         ).concatMap { Observable.just(it).delay(10000, TimeUnit.MILLISECONDS) }
     )
-    val html = AppendableSink().start {
-        wxSuspView.writeAsync(this, australia).thenAccept { this.close() }
+    val html = AppendableSink().also { out ->
+        wxSuspView.writeAsync(out, australia).thenAccept { out.close() }
     }.asFlux()
     return ServerResponse
         .ok()
@@ -104,9 +115,9 @@ private fun htmlflowBlockingHandlerArtist(req: ServerRequest): Mono<ServerRespon
     val artist: Artist = requireNotNull(artists[name.lowercase()]) {
         "No resource for artist name $name"
     }
-    val html: Publisher<String> = AppendableSink().start {
+    val html: Publisher<String> = AppendableSink().also {
           artistView
-            .setOut(this)
+            .setOut(it)
             .write(
                 Artist(
                     currentTimeMillis(),
@@ -116,7 +127,7 @@ private fun htmlflowBlockingHandlerArtist(req: ServerRequest): Mono<ServerRespon
                     artist.monoApple()
                 )
             )
-          close()
+          it.close()
         }
         .asFlux()
     return ServerResponse
@@ -155,9 +166,9 @@ private fun htmlflowAsyncViewHandlerArtist(req: ServerRequest): Mono<ServerRespo
         artist.monoSpotify(),
         artist.monoApple()
     )
-    val html = AppendableSink().start {
-        htmlFlowArtistAsyncView.writeAsync(this, model)
-            .thenAccept { this.close() }
+    val html = AppendableSink().also { out ->
+        htmlFlowArtistAsyncView.writeAsync(out, model)
+            .thenAccept { out.close() }
     }
     return ServerResponse
         .ok()
@@ -177,10 +188,16 @@ private suspend fun htmlflowSuspendViewHandlerArtist(req: ServerRequest): Server
         artist.monoSpotify(),
         artist.monoApple()
     )
-    val html = AppendableSink().startSuspending {
-        htmlFlowArtistSuspendingView.write(this, model)
-        this.close()
-    }
+    /*
+     * We need another co-routine to render concurrently and ensure
+     * progressive server-side rendering (PSSR)
+     * Here we are using Unconfined running in same thread and avoiding context switching.
+     * That's ok since we are NOT blocking on htmlFlowTemplateSuspending.
+     */
+    val html = AppendableSink().also { unconf.launch {
+        htmlFlowArtistSuspendingView.write(it, model)
+        it.close()
+    }}
     return ServerResponse
         .ok()
         .contentType(MediaType.TEXT_HTML)
@@ -207,13 +224,14 @@ private fun handlerPlaylist(req: ServerRequest): Mono<ServerResponse>  {
                 .`__`() // body
                 .`__`() // html
         }
-    val html: Publisher<String> = AppendableSink().start {
-        view.setOut(this).write(tracks.doOnComplete { close() })
-    }.asFlux()
+    val html = AppendableSink().also { view
+        .setOut(it)
+        .write(tracks.doOnComplete { it.close() })
+    }
     return ServerResponse
         .ok()
         .contentType(MediaType.TEXT_HTML)
-        .body(html, object : ParameterizedTypeReference<String>() {})
+        .body(html.asFlux(), object : ParameterizedTypeReference<String>() {})
 }
 
 private suspend fun handlerPlaylistSuspending(req: ServerRequest): ServerResponse  {
@@ -232,11 +250,17 @@ private suspend fun handlerPlaylistSuspending(req: ServerRequest): ServerRespons
                 .`__`() // body
                 .`__`() // html
         }
-    val html: Publisher<String> = AppendableSink().startSuspending {
+    /*
+     * We need another co-routine to render concurrently and ensure
+     * progressive server-side rendering (PSSR)
+     * Here we are using Unconfined running in same thread and avoiding context switching.
+     * That's ok since we are NOT blocking on htmlFlowTemplateSuspending.
+     */
+    val html: Publisher<String> = AppendableSink().also {  unconf.launch {
         view
-            .write(this, tracks.toFlowable(BackpressureStrategy.BUFFER).asFlow())
-            this.close()
-    }.asFlux()
+            .write(it, tracks.toFlowable(BackpressureStrategy.BUFFER).asFlow())
+        it.close()
+    }}.asFlux()
 
     return ServerResponse
         .ok()
