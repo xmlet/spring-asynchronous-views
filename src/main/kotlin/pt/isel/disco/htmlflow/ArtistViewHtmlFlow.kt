@@ -1,8 +1,11 @@
 package pt.isel.disco.htmlflow
 
 import htmlflow.*
+import io.reactivex.rxjava3.core.BackpressureStrategy
+import io.reactivex.rxjava3.core.BackpressureStrategy.BUFFER
 import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.reactive.asFlow
 import org.reactivestreams.Publisher
 import org.xmlet.htmlapifaster.EnumBorderType._1
 import pt.isel.disco.AppendableSink
@@ -230,7 +233,7 @@ val wxRxView: HtmlView<WeatherRx> = view<WeatherRx> {
     } // html
 }
 
-val wxSuspView: HtmlViewAsync<WeatherRx> = viewAsync<WeatherRx> {
+val wxAsyncView: HtmlViewAsync<WeatherRx> = viewAsync<WeatherRx> {
     html()
         .head()
         .title().dyn { m: WeatherRx ->
@@ -257,6 +260,33 @@ val wxSuspView: HtmlViewAsync<WeatherRx> = viewAsync<WeatherRx> {
         .l // table
         .l // body
         .l // html
+}
+
+
+val wxSuspendingView: HtmlViewSuspend<WeatherRx> = viewSuspend<WeatherRx> {
+  html {
+    head {
+      title { dyn { m: WeatherRx ->
+        text(m.country)
+      } } // title
+    } // head
+    body {
+      table { attrBorder(_1)
+        tr {
+          th { text("City") }
+          th { text("Celsius") }
+        }
+        suspending { m: WeatherRx ->
+          m.cities.toFlowable(BUFFER).asFlow().collect {
+            tr {
+              td { text(it.city) }
+              td { text(it.celsius) }
+            }
+          }
+        }
+      } // table
+    } // body
+  } // html
 }
 
 

@@ -12,6 +12,17 @@ public class TestWeatherView {
         final var html = request("/htmlflow/blocking/weather/australia");
         assertHtml(expectedWellFormed(), html);
     }
+    @Test
+    public void testHtmlFlowWeatherAsync() {
+        final var html = request("/htmlflow/async/weather/australia");
+        assertHtml(expectedWellFormed(), html);
+    }
+
+    @Test
+    public void testHtmlFlowWeatherSuspending() {
+        final var html = request("/htmlflow/suspending/weather/australia");
+        assertHtml(expectedWellFormed(), html);
+    }
 
     @Test
     public void testHtmlFlowWeatherReactiveMalformed() {

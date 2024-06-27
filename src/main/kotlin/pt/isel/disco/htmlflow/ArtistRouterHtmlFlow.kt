@@ -41,7 +41,7 @@ fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
             builder
                 .GET("/blocking/weather/australia", ::htmlflowBlockingHandlerWeather)
                 .GET("/reactive/weather/australia", ::htmlflowReactiveHandlerWeather)
-                .GET("/suspending/weather/australia", ::htmlflowSuspendingHandlerWeather)
+                .GET("/async/weather/australia", ::htmlflowAsyncHandlerWeather)
                 .GET("/blocking/artist/{name}", ::htmlflowBlockingHandlerArtist)
                 .GET("/reactive/artist/{name}", ::htmlflowReactiveHandlerArtist)
                 .GET("/reactive/playlist", ::handlerPlaylist)
@@ -53,11 +53,19 @@ fun artistRouterHtmlFlow(): RouterFunction<ServerResponse> {
 
 fun artistCoRouterHtmlFlow() = coRouter {
     "/htmlflow".nest {
+        GET("/suspending/weather/australia", ::htmlflowSuspendingHandlerWeather)
         GET("/suspending/artist/{name}") (::htmlflowSuspendViewHandlerArtist)
         GET("/suspending/playlist")(::handlerPlaylistSuspending)
     }
 }
 
+val australia = WeatherRx("Australia", Observable
+    .fromArray(
+        Location("Adelaide", "Light rain", 9),
+        Location("Darwin", "Sunny day", 31),
+        Location("Perth", "Sunny day", 16)
+    ).concatMap { Observable.just(it).delay(1000, TimeUnit.MILLISECONDS) }
+)
 
 private fun htmlflowBlockingHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
     val australia = Weather("Australia", listOf(
@@ -75,13 +83,6 @@ private fun htmlflowBlockingHandlerWeather(req: ServerRequest): Mono<ServerRespo
         .body(html, object : ParameterizedTypeReference<String>() {})
 }
 private fun htmlflowReactiveHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
-    val australia = WeatherRx("Australia", Observable
-        .fromArray(
-            Location("Adelaide", "Light rain", 9),
-            Location("Darwin", "Sunny day", 31),
-            Location("Perth", "Sunny day", 16)
-        ).concatMap { Observable.just(it).delay(1000, TimeUnit.MILLISECONDS) }
-    )
     val html = AppendableSink().also {
         australia.cities = australia.cities.doOnComplete {
             it.close()
@@ -93,21 +94,32 @@ private fun htmlflowReactiveHandlerWeather(req: ServerRequest): Mono<ServerRespo
         .contentType(MediaType.TEXT_HTML)
         .body(html, object : ParameterizedTypeReference<String>() {})
 }
-private fun htmlflowSuspendingHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
-    val australia = WeatherRx("Australia", Observable
-        .fromArray(
-            Location("Adelaide", "Light rain", 9),
-            Location("Darwin", "Sunny day", 31),
-            Location("Perth", "Sunny day", 16)
-        ).concatMap { Observable.just(it).delay(10000, TimeUnit.MILLISECONDS) }
-    )
+private fun htmlflowAsyncHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
     val html = AppendableSink().also { out ->
-        wxSuspView.writeAsync(out, australia).thenAccept { out.close() }
+        wxAsyncView.writeAsync(out, australia).thenAccept { out.close() }
     }.asFlux()
     return ServerResponse
         .ok()
         .contentType(MediaType.TEXT_HTML)
         .body(html, object : ParameterizedTypeReference<String>() {})
+}
+
+private suspend fun htmlflowSuspendingHandlerWeather(req: ServerRequest): ServerResponse  {
+    /*
+     * We need another co-routine to render concurrently and ensure
+     * progressive server-side rendering (PSSR)
+     * Here we are using Unconfined running in same thread and avoiding context switching.
+     * That's ok since we are NOT blocking on htmlFlowTemplateSuspending.
+     */
+    val html = AppendableSink().also { unconf.launch {
+        wxSuspendingView.write(it, australia)
+        it.close()
+    }}
+    return ServerResponse
+        .ok()
+        .contentType(MediaType.TEXT_HTML)
+        .body(html.asFlux(), object : ParameterizedTypeReference<String>() {})
+        .awaitSingle()
 }
 
 private fun htmlflowBlockingHandlerArtist(req: ServerRequest): Mono<ServerResponse> {
