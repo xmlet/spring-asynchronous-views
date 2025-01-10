@@ -100,9 +100,7 @@ val htmlFlowArtistAsyncView = HtmlFlow.viewAsync<Artist> { page -> page
 
 class SuspendableCf<T>(private val cf: CompletableFuture<T>) {
 
-  suspend fun holdFor() : T {
-    return awaitHandle(cf)
-  }
+  suspend fun holdFor() : T = awaitHandle(cf)
 
   val awaitHandle = ::awaitCps as (suspend (CompletableFuture<T>) -> T)
 
@@ -178,29 +176,29 @@ val artistView: HtmlView<Artist> = view<Artist> {
 }
 
 val wxView: HtmlView<Weather> = view<Weather> {
-        html {
-            head {
-                title { dyn { m: Weather ->
-                    text(m.country)
-                } } // title
-            } // head
-            body {
-                table { attrBorder(_1)
-                    tr {
-                        th { +"City" }
-                        th { +"Celsius" }
-                    }
-                    dyn { m: Weather ->
-                        m.cities.forEach {
-                            tr {
-                                td { text(it.city) }
-                                td { text(it.celsius) }
-                            }
+    html {
+        head {
+            title { dyn { m: Weather ->
+                text(m.country)
+            } } // title
+        } // head
+        body {
+            table { attrBorder(_1)
+                tr {
+                    th { +"City" }
+                    th { +"Celsius" }
+                }
+                dyn { m: Weather ->
+                    m.cities.forEach {
+                        tr {
+                            td { text(it.city) }
+                            td { text(it.celsius) }
                         }
                     }
-                } // table
-            } // body
-        } // html
+                }
+            } // table
+        } // body
+    } // html
 }
 
 /**

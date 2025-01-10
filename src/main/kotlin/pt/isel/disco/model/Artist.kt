@@ -22,12 +22,12 @@ data class Artist(
 
     fun monoSpotify() = Mono
         .fromSupplier { spotify }
-        .delayElement(Duration.of(timeout + 1000, MILLIS))
+        .delayElement(Duration.of(timeout*2, MILLIS))
         .toFuture()
 
     fun monoApple() = Mono
         .fromSupplier { apple }
-        .delayElement(Duration.of(timeout + 2000, MILLIS))
+        .delayElement(Duration.of(timeout, MILLIS))
         .toFuture()
 
 }

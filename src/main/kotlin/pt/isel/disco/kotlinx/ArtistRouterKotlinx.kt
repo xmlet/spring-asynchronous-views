@@ -65,7 +65,7 @@ private suspend fun handlerArtistKotlinXBlocking(req: ServerRequest): ServerResp
         name.split(" ").joinToString(" ") { it.capitalize() },
         artist.monoMusicBrainz(),
         artist.monoSpotify(),
-        artist.monoApple()
+        null
     )
 
     return ServerResponse

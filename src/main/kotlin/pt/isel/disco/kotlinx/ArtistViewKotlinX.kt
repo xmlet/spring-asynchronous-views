@@ -79,7 +79,7 @@ fun kotlinXArtistBlocking(
     artisName: String,
     cfMusicBrainz: CompletableFuture<MusicBrainz>,
     cfSpotify: CompletableFuture<SpotifyArtist>,
-    cfApple: CompletableFuture<AppleMusicArtist>,
+    cfApple: CompletableFuture<AppleMusicArtist>?,
 ): Publisher<String> {
     return AppendableSink().apply { appendHTML()
                 .html {

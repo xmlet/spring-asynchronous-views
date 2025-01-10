@@ -68,10 +68,7 @@ val australia = WeatherRx("Australia", Observable
 )
 
 private fun htmlflowBlockingHandlerWeather(req: ServerRequest): Mono<ServerResponse> {
-    val australia = Weather("Australia", listOf(
-        Location("Adelaide", "Light rain", 9),
-        Location("Darwin", "Sunny day", 31),
-        Location("Perth", "Sunny day", 16)))
+    val australia = Weather("Australia", australia.cities.toList().blockingGet())
     val html = AppendableSink().also {
         wxView.setOut(it).write(australia)
         it.close()

@@ -17,7 +17,7 @@ val artists : Map<String, Artist> = mapOf(
     ),
     "david bowie" to Artist(
         "David Bowie",
-        MusicBrainz(artist = "David Bowie", 1960, "New York", listOf("Pop Rock")),
+        MusicBrainz(artist = "David Bowie", 1960, "London", listOf("Pop Rock")),
         SpotifyArtist("David Bowie",  16428657, listOf("Heroes", "Starman", "Rebel Rebel", "Space Oddity", "Let's dance"), listOf()),
         AppleMusicArtist("David Bowie", listOf("Under Pressure", "Starman", "Space Oddity", "Let's dance", "Fame"), listOf())
     ),
