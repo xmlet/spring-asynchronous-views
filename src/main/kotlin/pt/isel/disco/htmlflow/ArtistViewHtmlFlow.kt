@@ -1,19 +1,19 @@
 package pt.isel.disco.htmlflow
 
 import htmlflow.*
-import io.reactivex.rxjava3.core.BackpressureStrategy
 import io.reactivex.rxjava3.core.BackpressureStrategy.BUFFER
 import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.reactive.asFlow
 import org.reactivestreams.Publisher
 import org.xmlet.htmlapifaster.EnumBorderType._1
+import org.xmlet.htmlapifaster.*
 import pt.isel.disco.AppendableSink
 import pt.isel.disco.model.AppleMusicArtist
 import pt.isel.disco.model.MusicBrainz
 import pt.isel.disco.model.SpotifyArtist
-import java.util.concurrent.CompletableFuture
 import java.lang.String.join
+import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
 import kotlin.coroutines.resume
